@@ -2363,4 +2363,131 @@ mdq = """
 
 result = pd.read_sql_query(mdq, con=engine)
 print(result)
-result.to_excel(fr"{save_path}\MissingData({date}).xlsx")
+result.to_excel(fr"{save_path}\MissingData({date}).xlsx", sheet_name='ISPs')
+
+# Appointment Issues Query
+aiq = """
+SELECT  
+    individual,
+    date,
+    begin_time as 'Time',
+    provider,
+    specialty,
+    apt_status,
+    follow_up_date,
+    CASE
+        WHEN 
+            (program='3 Nairn Ln' OR program='8 Nairn Ln')
+            THEN 'David'
+        WHEN
+            (program='324 Broadstairs' OR program='Westover E104' OR program='104 Katrina Way')
+            THEN 'Teena'
+        WHEN
+            (program='Katrina 110' OR program='13B Dartmouth - Castlebrook' OR program='Cannon Mills - 101')
+            THEN 'Paul'
+        END AS 'Manager',
+    CASE 
+        WHEN
+            (program='3 Nairn Ln' OR program='8 Nairn Ln' OR program='13B Dartmouth - Castlebrook')
+            THEN 'New Castle County'
+        WHEN
+            (program='324 Broadstairs' OR program='Westover E104' OR program='104 Katrina Way' OR program='Cannon Mills - 101' OR program='Katrina 110')
+            THEN 'Kent County'
+        END AS 'County'
+
+FROM
+    Appointments2022
+
+WHERE
+    (apt_status='Scheduled')
+    OR
+    (apt_status='Cancelled' AND (Comment is null))
+    OR 
+    (apt_status='Rescheduled' AND follow_up_date is null)
+    OR
+    (apt_status='Declined' AND (follow_up_date is null OR Comment is null))
+    OR 
+    (apt_status='Not Scheduled' AND (comment is null OR [Description] is null))"""
+
+result = pd.read_sql_query(aiq, con=engine)
+print(result)
+result.to_excel(fr"{save_path}\MissingData({date}).xlsx", sheet_name='Apts')
+
+# Attendance Points Query
+apq = """
+SELECT
+    EE_Code as [Employee ID],
+    concat(pt.FirstName, ' ', pt.LastName) as 'Staff',
+    Count(pt.Points)  as 'Points',
+    AVG(pt.Minutes_Points_Off) as 'Average Time Late',
+    dsp.supervisor 
+FROM
+    atnPoints pt
+    Join CurrentDSP dsp 
+    ON pt.EE_Code=dsp.Employee_Code
+
+Where 
+    ScheduledDate > '04/17/2022'
+GROUP BY 
+    EE_Code, 
+    pt.FirstName,
+	pt.LastName,
+    dsp.supervisor
+Order by 
+	ee_code
+    """
+
+result = pd.read_sql_query(apq, con=engine)
+print(result)
+result.to_excel(fr"{save_path}\MissingData({date}).xlsx", sheet_name='Attendance_Points')
+
+# Corrective Action Query
+pdf = """
+SELECT
+    wu.Employee_Code,
+    concat(wu.Legal_Firstname, ' ', wu.Legal_Lastname) as 'Employee',
+    wu.Creation_Date,
+    wu.discussion_reason,
+    wu.Discussion_Template,
+    CASE 
+        WHEN wu.discussion_template='Memo of Conversation'
+        THEN 'Supervisor Comments'
+        WHEN wu.discussion_template!='Memo of Conversation'
+        THEN 'Description of Incident'
+        END as 'Field Description',
+    wu.field_answer,
+    Count (distinct wu.[discussion_id]) as Count,
+    cd.supervisor
+
+FROM
+    WriteUps wu
+
+JOIN
+    currentdsp cd 
+    ON cd.employee_code=wu.Employee_Code
+
+WHERE
+    wu.field_description='Description of Incident'
+    OR wu.field_description='Supervisor Comments'
+
+GROUP BY 
+    wu.Employee_Code,
+    wu.Legal_Firstname,
+    wu.Legal_Lastname,
+    wu.Creation_Date,
+    wu.discussion_reason,
+    wu.discussion_template,
+    wu.field_description,
+    wu.field_answer,
+    cd.supervisor
+
+HAVING 
+    cd.supervisor is not null 
+
+ORDER BY
+    wu.Employee_Code
+    """
+
+result = pd.read_sql_query(pdf, con=engine)
+print(result)
+result.to_excel(fr"{save_path}\MissingData({date}).xlsx", sheet_name='Performance Discussion Forms')
