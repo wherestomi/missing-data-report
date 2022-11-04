@@ -2360,10 +2360,9 @@ mdq = """
 
     )
     """
+isp_data = pd.read_sql_query(mdq, con=engine)
+print(isp_data)
 
-result = pd.read_sql_query(mdq, con=engine)
-print(result)
-result.to_excel(fr"{save_path}\MissingData({date}).xlsx", sheet_name='ISPs')
 
 # Appointment Issues Query
 aiq = """
@@ -2408,10 +2407,9 @@ WHERE
     (apt_status='Declined' AND (follow_up_date is null OR Comment is null))
     OR 
     (apt_status='Not Scheduled' AND (comment is null OR [Description] is null))"""
+apt_data = pd.read_sql_query(aiq, con=engine)
+print(apt_data)
 
-result = pd.read_sql_query(aiq, con=engine)
-print(result)
-result.to_excel(fr"{save_path}\MissingData({date}).xlsx", sheet_name='Apts')
 
 # Attendance Points Query
 apq = """
@@ -2436,10 +2434,9 @@ GROUP BY
 Order by 
 	ee_code
     """
+ap_data = pd.read_sql_query(apq, con=engine)
+print(ap_data)
 
-result = pd.read_sql_query(apq, con=engine)
-print(result)
-result.to_excel(fr"{save_path}\MissingData({date}).xlsx", sheet_name='Attendance_Points')
 
 # Corrective Action Query
 pdf = """
@@ -2487,7 +2484,13 @@ HAVING
 ORDER BY
     wu.Employee_Code
     """
+pdf_data = pd.read_sql_query(pdf, con=engine)
+print(pdf_data)
 
-result = pd.read_sql_query(pdf, con=engine)
-print(result)
-result.to_excel(fr"{save_path}\MissingData({date}).xlsx", sheet_name='Performance Discussion Forms')
+# MissingData Excel File
+xlwriter = pd.ExcelWriter(fr"{save_path}\Book1.xlsx")
+isp_data.to_excel(xlwriter, sheet_name="ISPs", index=False, startrow=2)
+apt_data.to_excel(xlwriter, sheet_name="Apts", index=False)
+ap_data.to_excel(xlwriter, sheet_name="Attendance_Points", index=False)
+pdf_data.to_excel(xlwriter, sheet_name="Performance_Discussion_Forms", index=False)
+xlwriter.close()
