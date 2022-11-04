@@ -16,16 +16,16 @@ import azure_cnxn as az
 
 date = input("What's Today's Date?:   ")
 save_path = fr"C:\Users\olato\OneDrive\Desktop\TOBOLA QA REVIEW\Data_Pulls\10_October\{date}"
-nc_isp_path = fr"{save_path}\RAW\nc_isp.xlsx"
-kc_isp_path = fr"{save_path}\RAW\kc_isp.xlsx"
-q1 = fr"{save_path}\RAW\q1atn.xlsx"
-q2 = fr"{save_path}\RAW\q2atn.xlsx"
-q3 = fr"{save_path}\RAW\q3atn.xlsx"
-q4 = fr"{save_path}\RAW\q4atn.xlsx"
-timecard_path = fr"{save_path}\RAW\timecards.csv"
-apt_path = fr"{save_path}\RAW\apts.xlsx"
-points_path = fr"{save_path}\RAW\atnpoints.csv"
-pdf_path = fr"{save_path}\RAW\pdfs.csv"
+nc_isp_path = fr"{save_path}\CSVs\nc_isp.csv"
+kc_isp_path = fr"{save_path}\CSVs\kc_isp.csv"
+q1 = fr"{save_path}\CSVs\q1atn.csv"
+q2 = fr"{save_path}\CSVs\q2atn.csv"
+q3 = fr"{save_path}\CSVs\q3atn.csv"
+q4 = fr"{save_path}\CSVs\q4atn.csv"
+timecard_path = fr"{save_path}\CSVs\timecards.csv"
+apt_path = fr"{save_path}\CSVs\apts.csv"
+points_path = fr"{save_path}\CSVs\atnpoints.csv"
+pdf_path = fr"{save_path}\CSVs\pdfs.csv"
 
 
 isp_table = create_isp_table.start(kc_isp_path, nc_isp_path, save_path, date)
@@ -49,8 +49,10 @@ create_atn_points_table.write_to_table(points_table)
 cnxn_url = URL.create("mssql+pyodbc", query={"odbc_connect": az.cnxn_string})
 engine = sql.create_engine(cnxn_url)
 
-az.cursor.execute(pd.read_sql(missing_data_query.query, con=engine))
+az.cursor.execute(pd.read_sql(isp_table_clean.query, engine))
 az.cursor.commit()
-result = pd.DataFrame(pd.read_sql(missing_data_query.query, con=engine))
+az.cursor.execute(pd.read_sql(missing_data_query.query, engine))
+az.cursor.commit()
+result = pd.DataFrame(pd.read_sql(missing_data_query.query, engine))
 
 result.to_excel(fr"{save_path}\MissingData({savedate}).xlsx")
