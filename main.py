@@ -50,12 +50,13 @@ from openpyxl.worksheet.table import Table
 from openpyxl.utils import get_column_letter
 
 # Missing Data Query
-mdq = """  
+mdq = """ 
+
     (Select
         atn.individual as 'Name',
-        tc.InPunchDay as 'Date',
+        atn.date as 'Date',
         concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, tc.InPunchDay) as 'Weekday',
+        datename(weekday, atn.date) as 'Weekday',
         tc.InPunchTime as 'Shift Start',
         tc.OutPunchTime as 'Shift End',
         'Castlebrook' as 'Home',
@@ -80,7 +81,7 @@ mdq = """
             AND isp.isp_program is NULL
 
 
-    Group By
+   Group By
         atn.individual,
         tc.InPunchTime,
         tc.Firstname,
@@ -88,8 +89,8 @@ mdq = """
         tc.OutPunchTime,
         tc.InPunchDay,
         atn.attendance,
-        tc.OutPunchDay
-
+        tc.OutPunchDay,
+        atn.Date
     HAVING
         tc.InPunchTime>='14:00'
         AND tc.InPunchTime<='17:00'
@@ -103,7 +104,7 @@ mdq = """
         atn.individual as 'Name',
         tc.InPunchDay as 'Date',
         concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, tc.InPunchDay) as 'Weekday',
+        datename(weekday, atn.Date) as 'Weekday',
         tc.InPunchTime as 'Shift Start',
         '11:59 PM' as 'Shift End',
         'Castlebrook' as 'Home',
@@ -127,7 +128,7 @@ mdq = """
         atn.individual like 'HEAD%'
         AND isp.isp_program is NULL
 
-    Group By
+   Group By
         atn.individual,
         tc.InPunchTime,
         tc.Firstname,
@@ -135,8 +136,8 @@ mdq = """
         tc.OutPunchTime,
         tc.InPunchDay,
         atn.attendance,
-        tc.OutPunchDay
-
+        tc.OutPunchDay,
+        atn.Date
     HAVING cast(tc.InPunchTime as time)>='6pm'
         AND atn.attendance like '%12%'
 
@@ -147,7 +148,7 @@ mdq = """
         atn.individual as 'Name',
         tc.OutPunchDay as 'Date',
         concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, tc.InPunchDay) as 'Weekday',
+        datename(weekday, atn.Date) as 'Weekday',
         '12:00 AM' as 'Shift Start',
         tc.OutPunchTime as 'Shift End',
         'Castlebrook' as 'Home',
@@ -163,14 +164,14 @@ mdq = """
                 AND ((cast(isp.begin_time as time)='12:00 AM' AND isp.[duration]>58))
 
             Left Join TimeCards2022 tc
-                ON (atn.date=tc.OutPunchDay)
+                ON (atn.date=tc.InPunchDay)
                 AND tc.Department='13B Castlebrook'
 
     WHERE
         atn.individual like 'HEAD%'
         AND isp.isp_program is NULL
 
-    Group By
+   Group By
         atn.individual,
         tc.InPunchTime,
         tc.Firstname,
@@ -178,8 +179,8 @@ mdq = """
         tc.OutPunchTime,
         tc.InPunchDay,
         atn.attendance,
-        tc.OutPunchDay
-
+        tc.OutPunchDay,
+        atn.Date
     HAVING cast(tc.InPunchTime as time)>='6pm'
         AND atn.attendance like '%12%'
 
@@ -190,7 +191,7 @@ mdq = """
         atn.individual as 'Name',
         tc.InPunchDay as 'Date',
         concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, tc.InPunchDay) as 'Weekday',
+        datename(weekday, atn.Date) as 'Weekday',
         tc.InPunchTime as 'Shift Start',
         tc.OutPunchTime as 'Shift End',
         'Castlebrook' as 'Home',
@@ -215,7 +216,7 @@ mdq = """
             AND isp.isp_program is NULL
 
 
-    Group By
+   Group By
         atn.individual,
         tc.InPunchTime,
         tc.Firstname,
@@ -223,8 +224,8 @@ mdq = """
         tc.OutPunchTime,
         tc.InPunchDay,
         atn.attendance,
-        tc.OutPunchDay
-
+        tc.OutPunchDay,
+        atn.Date
     HAVING
         tc.InPunchTime>='14:00'
         AND tc.InPunchTime<='17:00'
@@ -238,7 +239,7 @@ mdq = """
         atn.individual as 'Name',
         tc.InPunchDay as 'Date',
         concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, tc.InPunchDay) as 'Weekday',
+        datename(weekday, atn.Date) as 'Weekday',
         tc.InPunchTime as 'Shift Start',
         '11:59 PM' as 'Shift End',
         'Castlebrook' as 'Home',
@@ -262,7 +263,7 @@ mdq = """
         atn.individual like 'FAUST%'
         AND isp.isp_program is NULL
 
-    Group By
+   Group By
         atn.individual,
         tc.InPunchTime,
         tc.Firstname,
@@ -270,8 +271,8 @@ mdq = """
         tc.OutPunchTime,
         tc.InPunchDay,
         atn.attendance,
-        tc.OutPunchDay
-
+        tc.OutPunchDay,
+        atn.Date
     HAVING cast(tc.InPunchTime as time)>='6pm'
         AND atn.attendance like '%12%'
 
@@ -282,7 +283,7 @@ mdq = """
         atn.individual as 'Name',
         tc.OutPunchDay as 'Date',
         concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, tc.InPunchDay) as 'Weekday',
+        datename(weekday, atn.Date) as 'Weekday',
         '12:00 AM' as 'Shift Start',
         tc.OutPunchTime as 'Shift End',
         'Castlebrook' as 'Home',
@@ -298,14 +299,14 @@ mdq = """
                 AND ((cast(isp.begin_time as time)='12:00 AM' AND isp.[duration]>58))
 
             Left Join TimeCards2022 tc
-                ON (atn.date=tc.OutPunchDay)
+                ON (atn.date=tc.InPunchDay)
                 AND tc.Department='13B Castlebrook'
 
     WHERE
         atn.individual like 'FAUST%'
         AND isp.isp_program is NULL
 
-    Group By
+   Group By
         atn.individual,
         tc.InPunchTime,
         tc.Firstname,
@@ -313,8 +314,8 @@ mdq = """
         tc.OutPunchTime,
         tc.InPunchDay,
         atn.attendance,
-        tc.OutPunchDay
-
+        tc.OutPunchDay,
+        atn.Date
     HAVING cast(tc.InPunchTime as time)>='6pm'
         AND atn.attendance like '%12%'
 
@@ -326,7 +327,7 @@ mdq = """
         atn.individual as 'Name',
         tc.InPunchDay as 'Date',
         concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, tc.InPunchDay) as 'Weekday',
+        datename(weekday, atn.Date) as 'Weekday',
         tc.InPunchTime as 'Shift Start',
         tc.OutPunchTime as 'Shift End',
         '3 Nairn' as 'Home',
@@ -352,7 +353,7 @@ mdq = """
         -- IF THE INDIVIDUAL GOES TO DAY PROGRAM --
         AND (datepart(weekday,atn.date)<2 OR datepart(weekday,atn.date)>6)
 
-    Group By
+   Group By
         atn.individual,
         tc.InPunchTime,
         tc.Firstname,
@@ -360,8 +361,8 @@ mdq = """
         tc.OutPunchTime,
         tc.InPunchDay,
         atn.attendance,
-        tc.OutPunchDay
-
+        tc.OutPunchDay,
+        atn.Date
     HAVING
         cast(tc.InPunchTime as time)>='07:00'
         AND cast(tc.InPunchTime as time)<='10:00'
@@ -377,7 +378,7 @@ mdq = """
         atn.individual as 'Name',
         tc.InPunchDay as 'Date',
         concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, tc.InPunchDay) as 'Weekday',
+        datename(weekday, atn.Date) as 'Weekday',
         tc.InPunchTime as 'Shift Start',
         tc.OutPunchTime as 'Shift End',
         '3 Nairn' as 'Home',
@@ -402,7 +403,7 @@ mdq = """
         AND isp.isp_program is NULL
 
 
-    Group By
+   Group By
         atn.individual,
         tc.InPunchTime,
         tc.Firstname,
@@ -410,8 +411,8 @@ mdq = """
         tc.OutPunchTime,
         tc.InPunchDay,
         atn.attendance,
-        tc.OutPunchDay
-
+        tc.OutPunchDay,
+        atn.Date
     HAVING
         cast(tc.InPunchTime as time)>='14:00'
         AND cast(tc.InPunchTime as time)<='17:00'
@@ -428,7 +429,7 @@ mdq = """
         atn.individual as 'Name',
         tc.InPunchDay as 'Date',
         concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, tc.InPunchDay) as 'Weekday',
+        datename(weekday, atn.Date) as 'Weekday',
         tc.InPunchTime as 'Shift Start',
         '11:59 PM' as 'Shift End',
         '3 Nairn' as 'Home',
@@ -451,7 +452,7 @@ mdq = """
         atn.individual like 'GARR%'
         AND isp.isp_program is NULL
 
-    Group By
+   Group By
         atn.individual,
         tc.InPunchTime,
         tc.Firstname,
@@ -459,8 +460,8 @@ mdq = """
         tc.OutPunchTime,
         tc.InPunchDay,
         atn.attendance,
-        tc.OutPunchDay
-
+        tc.OutPunchDay,
+        atn.Date
     HAVING
         cast(tc.InPunchTime as time)>='6pm'
         AND atn.attendance like '%12%'
@@ -475,7 +476,7 @@ mdq = """
         atn.individual as 'Name',
         tc.OutPunchDay as 'Date',
         concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, tc.InPunchDay) as 'Weekday',
+        datename(weekday, atn.Date) as 'Weekday',
         '12:00 AM' as 'Shift Start',
         tc.OutPunchTime as 'Shift End',
         '3 Nairn' as 'Home',
@@ -490,13 +491,13 @@ mdq = """
             AND ((cast(isp.begin_time as time)='12am' AND isp.[duration]>58))
 
         Left Join TimeCards2022 tc
-            ON (atn.date=tc.OutPunchDay)
+            ON (atn.date=tc.InPunchDay)
             AND tc.Department='SA3'
 
     WHERE atn.individual like 'GARR%'
         AND isp.isp_program is NULL
 
-    Group By
+   Group By
         atn.individual,
         tc.InPunchTime,
         tc.Firstname,
@@ -504,8 +505,8 @@ mdq = """
         tc.OutPunchTime,
         tc.InPunchDay,
         atn.attendance,
-        tc.OutPunchDay
-
+        tc.OutPunchDay,
+        atn.Date
     HAVING
         cast(tc.InPunchTime as time)>='6pm'
         AND atn.attendance like '%12%'
@@ -524,7 +525,7 @@ mdq = """
         atn.individual as 'Name',
         tc.InPunchDay as 'Date',
         concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, tc.InPunchDay) as 'Weekday',
+        datename(weekday, atn.Date) as 'Weekday',
         tc.InPunchTime as 'Shift Start',
         tc.OutPunchTime as 'Shift End',
         '3 Nairn' as 'Home',
@@ -550,7 +551,7 @@ mdq = """
         -- IF THE INDIVIDUAL GOES TO DAY PROGRAM --
         AND (datepart(weekday,atn.date)<2 OR datepart(weekday,atn.date)>6)
 
-    Group By
+   Group By
         atn.individual,
         tc.InPunchTime,
         tc.Firstname,
@@ -558,8 +559,8 @@ mdq = """
         tc.OutPunchTime,
         tc.InPunchDay,
         atn.attendance,
-        tc.OutPunchDay
-
+        tc.OutPunchDay,
+        atn.Date
     HAVING
         cast(tc.InPunchTime as time)>='07:00'
         AND cast(tc.InPunchTime as time)<='10:00'
@@ -575,7 +576,7 @@ mdq = """
         atn.individual as 'Name',
         tc.InPunchDay as 'Date',
         concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, tc.InPunchDay) as 'Weekday',
+        datename(weekday, atn.Date) as 'Weekday',
         tc.InPunchTime as 'Shift Start',
         tc.OutPunchTime as 'Shift End',
         '3 Nairn' as 'Home',
@@ -600,7 +601,7 @@ mdq = """
         AND isp.isp_program is NULL
 
 
-    Group By
+   Group By
         atn.individual,
         tc.InPunchTime,
         tc.Firstname,
@@ -608,8 +609,8 @@ mdq = """
         tc.OutPunchTime,
         tc.InPunchDay,
         atn.attendance,
-        tc.OutPunchDay
-
+        tc.OutPunchDay,
+        atn.Date
     HAVING
         cast(tc.InPunchTime as time)>='14:00'
         AND cast(tc.InPunchTime as time)<='17:00'
@@ -626,7 +627,7 @@ mdq = """
         atn.individual as 'Name',
         tc.InPunchDay as 'Date',
         concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, tc.InPunchDay) as 'Weekday',
+        datename(weekday, atn.Date) as 'Weekday',
         tc.InPunchTime as 'Shift Start',
         '11:59 PM' as 'Shift End',
         '3 Nairn' as 'Home',
@@ -649,7 +650,7 @@ mdq = """
         atn.individual like 'LANI%'
         AND isp.isp_program is NULL
 
-    Group By
+   Group By
         atn.individual,
         tc.InPunchTime,
         tc.Firstname,
@@ -657,8 +658,8 @@ mdq = """
         tc.OutPunchTime,
         tc.InPunchDay,
         atn.attendance,
-        tc.OutPunchDay
-
+        tc.OutPunchDay,
+        atn.Date
     HAVING
         cast(tc.InPunchTime as time)>='6pm'
         AND atn.attendance like '%12%'
@@ -674,7 +675,7 @@ mdq = """
         atn.individual as 'Name',
         tc.OutPunchDay as 'Date',
         concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, tc.InPunchDay) as 'Weekday',
+        datename(weekday, atn.Date) as 'Weekday',
         '12:00 AM' as 'Shift Start',
         tc.OutPunchTime as 'Shift End',
         '3 Nairn' as 'Home',
@@ -689,13 +690,13 @@ mdq = """
             AND ((cast(isp.begin_time as time)='12am' AND isp.[duration]>58))
 
         Left Join TimeCards2022 tc
-            ON (atn.date=tc.OutPunchDay)
+            ON (atn.date=tc.InPunchDay)
             AND tc.Department='SA3'
 
     WHERE atn.individual like 'LANI%'
     AND isp.isp_program is NULL
 
-    Group By
+   Group By
         atn.individual,
         tc.InPunchTime,
         tc.Firstname,
@@ -703,8 +704,8 @@ mdq = """
         tc.OutPunchTime,
         tc.InPunchDay,
         atn.attendance,
-        tc.OutPunchDay
-
+        tc.OutPunchDay,
+        atn.Date
     HAVING
         cast(tc.InPunchTime as time)>='6pm'
         AND atn.attendance like '%12%'
@@ -722,7 +723,7 @@ mdq = """
         atn.individual as 'Name',
         tc.InPunchDay as 'Date',
         concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, tc.InPunchDay) as 'Weekday',
+        datename(weekday, atn.Date) as 'Weekday',
         tc.InPunchTime as 'Shift Start',
         tc.OutPunchTime as 'Shift End',
         '3 Nairn' as 'Home',
@@ -748,7 +749,7 @@ mdq = """
         -- IF THE INDIVIDUAL GOES TO DAY PROGRAM --
         AND (datepart(weekday,atn.date)<2 OR datepart(weekday,atn.date)>6)
 
-    Group By
+   Group By
         atn.individual,
         tc.InPunchTime,
         tc.Firstname,
@@ -756,8 +757,8 @@ mdq = """
         tc.OutPunchTime,
         tc.InPunchDay,
         atn.attendance,
-        tc.OutPunchDay
-
+        tc.OutPunchDay,
+        atn.Date
     HAVING
         cast(tc.InPunchTime as time)>='07:00'
         AND cast(tc.InPunchTime as time)<='10:00'
@@ -773,7 +774,7 @@ mdq = """
         atn.individual as 'Name',
         tc.InPunchDay as 'Date',
         concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, tc.InPunchDay) as 'Weekday',
+        datename(weekday, atn.Date) as 'Weekday',
         tc.InPunchTime as 'Shift Start',
         tc.OutPunchTime as 'Shift End',
         '3 Nairn' as 'Home',
@@ -798,7 +799,7 @@ mdq = """
         AND isp.isp_program is NULL
 
 
-    Group By
+   Group By
         atn.individual,
         tc.InPunchTime,
         tc.Firstname,
@@ -806,8 +807,8 @@ mdq = """
         tc.OutPunchTime,
         tc.InPunchDay,
         atn.attendance,
-        tc.OutPunchDay
-
+        tc.OutPunchDay,
+        atn.Date
     HAVING
         cast(tc.InPunchTime as time)>='14:00'
         AND cast(tc.InPunchTime as time)<='17:00'
@@ -824,7 +825,7 @@ mdq = """
         atn.individual as 'Name',
         tc.InPunchDay as 'Date',
         concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, tc.InPunchDay) as 'Weekday',
+        datename(weekday, atn.Date) as 'Weekday',
         tc.InPunchTime as 'Shift Start',
         '11:59 PM' as 'Shift End',
         '3 Nairn' as 'Home',
@@ -847,7 +848,7 @@ mdq = """
         atn.individual like 'GALL%'
         AND isp.isp_program is NULL
 
-    Group By
+   Group By
         atn.individual,
         tc.InPunchTime,
         tc.Firstname,
@@ -855,8 +856,8 @@ mdq = """
         tc.OutPunchTime,
         tc.InPunchDay,
         atn.attendance,
-        tc.OutPunchDay
-
+        tc.OutPunchDay,
+        atn.Date
     HAVING
         cast(tc.InPunchTime as time)>='6pm'
         AND atn.attendance like '%12%'
@@ -871,7 +872,7 @@ mdq = """
         atn.individual as 'Name',
         tc.OutPunchDay as 'Date',
         concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, tc.InPunchDay) as 'Weekday',
+        datename(weekday, atn.Date) as 'Weekday',
         '12:00 AM' as 'Shift Start',
         tc.OutPunchTime as 'Shift End',
         '3 Nairn' as 'Home',
@@ -886,13 +887,13 @@ mdq = """
             AND ((cast(isp.begin_time as time)='12am' AND isp.[duration]>58))
 
         Left Join TimeCards2022 tc
-            ON (atn.date=tc.OutPunchDay)
+            ON (atn.date=tc.InPunchDay)
             AND tc.Department='SA3'
 
     WHERE atn.individual like 'GALL%'
     AND isp.isp_program is NULL
 
-    Group By
+   Group By
         atn.individual,
         tc.InPunchTime,
         tc.Firstname,
@@ -900,8 +901,8 @@ mdq = """
         tc.OutPunchTime,
         tc.InPunchDay,
         atn.attendance,
-        tc.OutPunchDay
-
+        tc.OutPunchDay,
+        atn.Date
     HAVING
         cast(tc.InPunchTime as time)>='6pm'
         AND atn.attendance like '%12%'
@@ -918,7 +919,7 @@ mdq = """
         atn.individual as 'Name',
         tc.InPunchDay as 'Date',
         concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, tc.InPunchDay) as 'Weekday',
+        datename(weekday, atn.Date) as 'Weekday',
         tc.InPunchTime as 'Shift Start',
         tc.OutPunchTime as 'Shift End',
         '8 Nairn' as 'Home',
@@ -944,7 +945,7 @@ mdq = """
         -- IF THE INDIVIDUAL GOES TO DAY PROGRAM --
         AND (datepart(weekday,atn.date)<2 OR datepart(weekday,atn.date)>6)
 
-    Group By
+   Group By
         atn.individual,
         tc.InPunchTime,
         tc.Firstname,
@@ -952,8 +953,8 @@ mdq = """
         tc.OutPunchTime,
         tc.InPunchDay,
         atn.attendance,
-        tc.OutPunchDay
-
+        tc.OutPunchDay,
+        atn.Date
     HAVING
         cast(tc.InPunchTime as time)>='07:00'
         AND cast(tc.InPunchTime as time)<='10:00'
@@ -969,7 +970,7 @@ mdq = """
         atn.individual as 'Name',
         tc.InPunchDay as 'Date',
         concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, tc.InPunchDay) as 'Weekday',
+        datename(weekday, atn.Date) as 'Weekday',
         tc.InPunchTime as 'Shift Start',
         tc.OutPunchTime as 'Shift End',
         '8 Nairn' as 'Home',
@@ -994,7 +995,7 @@ mdq = """
         AND isp.isp_program is NULL
 
 
-    Group By
+   Group By
         atn.individual,
         tc.InPunchTime,
         tc.Firstname,
@@ -1002,8 +1003,8 @@ mdq = """
         tc.OutPunchTime,
         tc.InPunchDay,
         atn.attendance,
-        tc.OutPunchDay
-
+        tc.OutPunchDay,
+        atn.Date
     HAVING
         cast(tc.InPunchTime as time)>='14:00'
         AND cast(tc.InPunchTime as time)<='17:00'
@@ -1020,7 +1021,7 @@ mdq = """
         atn.individual as 'Name',
         tc.InPunchDay as 'Date',
         concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, tc.InPunchDay) as 'Weekday',
+        datename(weekday, atn.Date) as 'Weekday',
         tc.InPunchTime as 'Shift Start',
         '11:59 PM' as 'Shift End',
         '8 Nairn' as 'Home',
@@ -1043,7 +1044,7 @@ mdq = """
         atn.individual like 'JARD%'
         AND isp.isp_program is NULL
 
-    Group By
+   Group By
         atn.individual,
         tc.InPunchTime,
         tc.Firstname,
@@ -1051,8 +1052,8 @@ mdq = """
         tc.OutPunchTime,
         tc.InPunchDay,
         atn.attendance,
-        tc.OutPunchDay
-
+        tc.OutPunchDay,
+        atn.Date
     HAVING
         cast(tc.InPunchTime as time)>='6pm'
         AND atn.attendance like '%12%'
@@ -1067,7 +1068,7 @@ mdq = """
         atn.individual as 'Name',
         tc.OutPunchDay as 'Date',
         concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, tc.InPunchDay) as 'Weekday',
+        datename(weekday, atn.Date) as 'Weekday',
         '12:00 AM' as 'Shift Start',
         tc.OutPunchTime as 'Shift End',
         '8 Nairn' as 'Home',
@@ -1082,13 +1083,13 @@ mdq = """
             AND ((cast(isp.begin_time as time)='12am' AND isp.[duration]>58))
 
         Left Join TimeCards2022 tc
-            ON (atn.date=tc.OutPunchDay)
+            ON (atn.date=tc.InPunchDay)
             AND tc.Department='SA8'
 
     WHERE atn.individual like 'JARD%'
     AND isp.isp_program is NULL
 
-    Group By
+   Group By
         atn.individual,
         tc.InPunchTime,
         tc.Firstname,
@@ -1096,8 +1097,8 @@ mdq = """
         tc.OutPunchTime,
         tc.InPunchDay,
         atn.attendance,
-        tc.OutPunchDay
-
+        tc.OutPunchDay,
+        atn.Date
     HAVING
         cast(tc.InPunchTime as time)>='6pm'
         AND atn.attendance like '%12%'
@@ -1114,7 +1115,7 @@ mdq = """
         atn.individual as 'Name',
         tc.InPunchDay as 'Date',
         concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, tc.InPunchDay) as 'Weekday',
+        datename(weekday, atn.Date) as 'Weekday',
         tc.InPunchTime as 'Shift Start',
         tc.OutPunchTime as 'Shift End',
                     'E104' AS 'Home',
@@ -1140,7 +1141,7 @@ mdq = """
                  -- IF THE INDIVIDUAL GOES TO DAY PROGRAM --
                -- AND (datepart(weekday,atn.date)<2 OR datepart(weekday,atn.date)>6)
 
-    Group By
+   Group By
         atn.individual,
         tc.InPunchTime,
         tc.Firstname,
@@ -1148,8 +1149,8 @@ mdq = """
         tc.OutPunchTime,
         tc.InPunchDay,
         atn.attendance,
-        tc.OutPunchDay
-
+        tc.OutPunchDay,
+        atn.Date
     HAVING
         datepart(hour, tc.InPunchTime)>=7
         AND datepart(hour, tc.InPunchTime)<=10
@@ -1166,7 +1167,7 @@ mdq = """
         atn.individual as 'Name',
         tc.InPunchDay as 'Date',
         concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, tc.InPunchDay) as 'Weekday',
+        datename(weekday, atn.Date) as 'Weekday',
         tc.InPunchTime as 'Shift Start',
         tc.OutPunchTime as 'Shift End',
                     'E104' AS 'Home',
@@ -1188,7 +1189,7 @@ mdq = """
         WHERE atn.individual like 'SEWARD%'
                 AND isp.isp_program is NULL
 
-    Group By
+   Group By
         atn.individual,
         tc.InPunchTime,
         tc.Firstname,
@@ -1196,8 +1197,8 @@ mdq = """
         tc.OutPunchTime,
         tc.InPunchDay,
         atn.attendance,
-        tc.OutPunchDay
-
+        tc.OutPunchDay,
+        atn.Date
     HAVING
         cast(tc.InPunchTime as time)>='14:00'
         AND cast(tc.InPunchTime as time)<='17:00'
@@ -1215,7 +1216,7 @@ mdq = """
         atn.individual as 'Name',
         tc.InPunchDay as 'Date',
         concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, tc.InPunchDay) as 'Weekday',
+        datename(weekday, atn.Date) as 'Weekday',
         tc.InPunchTime as 'Shift Start',
         '11:59 PM' as 'Shift End',
                     'E104' AS 'Home',
@@ -1237,7 +1238,7 @@ mdq = """
         WHERE atn.individual like 'SEWARD%'
                AND isp.isp_program is NULL
 
-    Group By
+   Group By
         atn.individual,
         tc.InPunchTime,
         tc.Firstname,
@@ -1245,8 +1246,8 @@ mdq = """
         tc.OutPunchTime,
         tc.InPunchDay,
         atn.attendance,
-        tc.OutPunchDay
-
+        tc.OutPunchDay,
+        atn.Date
     HAVING
         cast(tc.InPunchTime as time)>='6pm'
         AND atn.attendance like '%12%'
@@ -1262,7 +1263,7 @@ mdq = """
         atn.individual as 'Name',
         tc.OutPunchDay as 'Date',
         concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, tc.InPunchDay) as 'Weekday',
+        datename(weekday, atn.Date) as 'Weekday',
         '12:00 AM' as 'Shift Start',
         tc.OutPunchTime as 'Shift End',
                     'E104' AS 'Home',
@@ -1276,13 +1277,13 @@ mdq = """
         AND ((cast(isp.begin_time as time)='12am' AND isp.[duration]>58))
 
         Left Join TimeCards2022 tc
-        ON (atn.date=tc.OutPunchDay)
+        ON (atn.date=tc.InPunchDay)
                 AND tc.Department='W104'
 
         WHERE atn.individual like 'SEWARD%'
                AND isp.isp_program is NULL
 
-    Group By
+   Group By
         atn.individual,
         tc.InPunchTime,
         tc.Firstname,
@@ -1290,8 +1291,8 @@ mdq = """
         tc.OutPunchTime,
         tc.InPunchDay,
         atn.attendance,
-        tc.OutPunchDay
-
+        tc.OutPunchDay,
+        atn.Date
 
     HAVING
         cast(tc.InPunchTime as time)>='6pm'
@@ -1309,7 +1310,7 @@ mdq = """
         atn.individual as 'Name',
         tc.InPunchDay as 'Date',
         concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, tc.InPunchDay) as 'Weekday',
+        datename(weekday, atn.Date) as 'Weekday',
         tc.InPunchTime as 'Shift Start',
         tc.OutPunchTime as 'Shift End',
                     'J101' as 'Home',
@@ -1321,7 +1322,7 @@ mdq = """
                     Right Join TOBOLA..[attendance2022] atn
                         On atn.date=isp.[date] AND atn.individual=isp.individual
                     Right Join TimeCards2022 tc
-                        On (concat(datename(weekday, tc.InPunchDay), ', ',datename(MONTH, tc.InPunchDay),' ', datename(day, tc.InPunchDay),', ', datename(year, tc.InPunchDay)))
+                        On (concat(datename(weekday, atn.Date), ', ',datename(MONTH, tc.InPunchDay),' ', datename(day, tc.InPunchDay),', ', datename(year, tc.InPunchDay)))
         =
         concat(datename(weekday, atn.date), ', ',datename(MONTH, atn.date),' ', datename(day, atn.date),', ', datename(year, atn.date))
 
@@ -1350,7 +1351,7 @@ mdq = """
         atn.individual as 'Name',
         tc.InPunchDay as 'Date',
         concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, tc.InPunchDay) as 'Weekday',
+        datename(weekday, atn.Date) as 'Weekday',
         tc.InPunchTime as 'Shift Start',
         tc.OutPunchTime as 'Shift End',
         'K110' as 'Home',
@@ -1376,7 +1377,7 @@ mdq = """
         -- IF THE INDIVIDUAL GOES TO DAY PROGRAM --
         -- AND (datepart(weekday,atn.date)<2 OR datepart(weekday,atn.date)>6)
 
-    Group By
+   Group By
         atn.individual,
         tc.InPunchTime,
         tc.Firstname,
@@ -1384,8 +1385,8 @@ mdq = """
         tc.OutPunchTime,
         tc.InPunchDay,
         atn.attendance,
-        tc.OutPunchDay
-
+        tc.OutPunchDay,
+        atn.Date
     HAVING
         datepart(hour, tc.InPunchTime)>=7
         AND datepart(hour, tc.InPunchTime)<=10
@@ -1401,7 +1402,7 @@ mdq = """
         atn.individual as 'Name',
         tc.InPunchDay as 'Date',
         concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, tc.InPunchDay) as 'Weekday',
+        datename(weekday, atn.Date) as 'Weekday',
         tc.InPunchTime as 'Shift Start',
         tc.OutPunchTime as 'Shift End',
         'K110' as 'Home',
@@ -1426,7 +1427,7 @@ mdq = """
         AND isp.isp_program is NULL
 
 
-    Group By
+   Group By
         atn.individual,
         tc.InPunchTime,
         tc.Firstname,
@@ -1434,8 +1435,8 @@ mdq = """
         tc.OutPunchTime,
         tc.InPunchDay,
         atn.attendance,
-        tc.OutPunchDay
-
+        tc.OutPunchDay,
+        atn.Date
     HAVING
         cast(tc.InPunchTime as time)>='14:00'
         AND cast(tc.InPunchTime as time)<='17:00'
@@ -1450,7 +1451,7 @@ mdq = """
         atn.individual as 'Name',
         tc.InPunchDay as 'Date',
         concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, tc.InPunchDay) as 'Weekday',
+        datename(weekday, atn.Date) as 'Weekday',
         tc.InPunchTime as 'Shift Start',
         '11:59 PM' as 'Shift End',
         'K110' as 'Home',
@@ -1480,7 +1481,8 @@ mdq = """
         tc.Lastname,
         tc.OutPunchTime,
         tc.InPunchDay,
-        atn.attendance
+        atn.attendance,
+        atn.date
 
     HAVING
         cast(tc.InPunchTime as time)>='6pm'
@@ -1494,7 +1496,7 @@ mdq = """
         atn.individual as 'Name',
         tc.OutPunchDay as 'Date',
         concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, tc.InPunchDay) as 'Weekday',
+        datename(weekday, atn.Date) as 'Weekday',
         '12:00 AM' as 'Shift Start',
         tc.OutPunchTime as 'Shift End',
         'K110' as 'Home',
@@ -1509,7 +1511,7 @@ mdq = """
         AND ((cast(isp.begin_time as time)='12am' AND isp.[duration]>58))
 
         Left Join TimeCards2022 tc
-        ON (atn.date=tc.OutPunchDay)
+        ON (atn.date=tc.InPunchDay)
         AND tc.Department='k110'
 
     WHERE
@@ -1517,7 +1519,7 @@ mdq = """
         AND isp.isp_program is NULL
 
 
-    Group By
+   Group By
         atn.individual,
         tc.InPunchTime,
         tc.Firstname,
@@ -1525,8 +1527,8 @@ mdq = """
         tc.OutPunchTime,
         tc.InPunchDay,
         atn.attendance,
-        tc.OutPunchDay
-
+        tc.OutPunchDay,
+        atn.Date
 
     HAVING
         cast(tc.InPunchTime as time)>='6pm'
@@ -1543,7 +1545,7 @@ mdq = """
         atn.individual as 'Name',
         tc.InPunchDay as 'Date',
         concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, tc.InPunchDay) as 'Weekday',
+        datename(weekday, atn.Date) as 'Weekday',
         tc.InPunchTime as 'Shift Start',
         tc.OutPunchTime as 'Shift End',
                     'E103' as 'Home',
@@ -1566,7 +1568,7 @@ mdq = """
                 AND isp.isp_program is NULL
                  -- IF THE INDIVIDUAL GOES TO DAY PROGRAM --
                 AND (datepart(weekday,atn.date)<2 OR datepart(weekday,atn.date)>6)
-    Group By
+   Group By
         atn.individual,
         tc.InPunchTime,
         tc.Firstname,
@@ -1574,8 +1576,8 @@ mdq = """
         tc.OutPunchTime,
         tc.InPunchDay,
         atn.attendance,
-        tc.OutPunchDay
-
+        tc.OutPunchDay,
+        atn.Date
     HAVING
         datepart(hour, tc.InPunchTime)>=7
         AND datepart(hour, tc.InPunchTime)<=10
@@ -1593,7 +1595,7 @@ mdq = """
         atn.individual as 'Name',
         tc.InPunchDay as 'Date',
         concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, tc.InPunchDay) as 'Weekday',
+        datename(weekday, atn.Date) as 'Weekday',
         tc.InPunchTime as 'Shift Start',
         tc.OutPunchTime as 'Shift End',
                     'E103' as 'Home',
@@ -1617,7 +1619,7 @@ mdq = """
                AND isp.isp_program is NULL
 
 
-    Group By
+   Group By
         atn.individual,
         tc.InPunchTime,
         tc.Firstname,
@@ -1625,8 +1627,8 @@ mdq = """
         tc.OutPunchTime,
         tc.InPunchDay,
         atn.attendance,
-        tc.OutPunchDay
-
+        tc.OutPunchDay,
+        atn.Date
     HAVING
         cast(tc.InPunchTime as time)>='14:00'
         AND cast(tc.InPunchTime as time)<='17:00'
@@ -1643,7 +1645,7 @@ mdq = """
         atn.individual as 'Name',
         tc.InPunchDay as 'Date',
         concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, tc.InPunchDay) as 'Weekday',
+        datename(weekday, atn.Date) as 'Weekday',
         tc.InPunchTime as 'Shift Start',
         '11:59 PM' as 'Shift End',
                     'E103' as 'Home',
@@ -1665,7 +1667,7 @@ mdq = """
         WHERE atn.individual like 'JAMES%'
                 AND isp.isp_program is NULL
 
-    Group By
+   Group By
         atn.individual,
         tc.InPunchTime,
         tc.Firstname,
@@ -1673,8 +1675,8 @@ mdq = """
         tc.OutPunchTime,
         tc.InPunchDay,
         atn.attendance,
-        tc.OutPunchDay
-
+        tc.OutPunchDay,
+        atn.Date
     HAVING
         cast(tc.InPunchTime as time)>='6pm'
         AND atn.attendance like '%12%'
@@ -1689,7 +1691,7 @@ mdq = """
         atn.individual as 'Name',
         tc.OutPunchDay as 'Date',
         concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, tc.InPunchDay) as 'Weekday',
+        datename(weekday, atn.Date) as 'Weekday',
         '12:00 AM' as 'Shift Start',
         tc.OutPunchTime as 'Shift End',
                     'E103' as 'Home',
@@ -1704,14 +1706,14 @@ mdq = """
         AND ((cast(isp.begin_time as time)='12am' AND isp.[duration]>58))
 
         Left Join TimeCards2022 tc
-        ON (atn.date=tc.OutPunchDay)
+        ON (atn.date=tc.InPunchDay)
                 AND tc.Department='W103'
 
         WHERE atn.individual like 'JAMES%'
                AND isp.isp_program is NULL
 
 
-    Group By
+   Group By
         atn.individual,
         tc.InPunchTime,
         tc.Firstname,
@@ -1719,8 +1721,8 @@ mdq = """
         tc.OutPunchTime,
         tc.InPunchDay,
         atn.attendance,
-        tc.OutPunchDay
-
+        tc.OutPunchDay,
+        atn.Date
 
     HAVING
         cast(tc.InPunchTime as time)>='6pm'
@@ -1740,7 +1742,7 @@ mdq = """
         atn.individual as 'Name',
         tc.InPunchDay as 'Date',
         concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, tc.InPunchDay) as 'Weekday',
+        datename(weekday, atn.Date) as 'Weekday',
         tc.InPunchTime as 'Shift Start',
         tc.OutPunchTime as 'Shift End',
                     'E103' as 'Home',
@@ -1763,7 +1765,7 @@ mdq = """
                 AND isp.isp_program is NULL
                  -- IF THE INDIVIDUAL GOES TO DAY PROGRAM --
                 AND (datepart(weekday,atn.date)<2 OR datepart(weekday,atn.date)>6)
-    Group By
+   Group By
         atn.individual,
         tc.InPunchTime,
         tc.Firstname,
@@ -1771,8 +1773,8 @@ mdq = """
         tc.OutPunchTime,
         tc.InPunchDay,
         atn.attendance,
-        tc.OutPunchDay
-
+        tc.OutPunchDay,
+        atn.Date
     HAVING
         datepart(hour, tc.InPunchTime)>=7
         AND datepart(hour, tc.InPunchTime)<=10
@@ -1790,7 +1792,7 @@ mdq = """
         atn.individual as 'Name',
         tc.InPunchDay as 'Date',
         concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, tc.InPunchDay) as 'Weekday',
+        datename(weekday, atn.Date) as 'Weekday',
         tc.InPunchTime as 'Shift Start',
         tc.OutPunchTime as 'Shift End',
                     'E103' as 'Home',
@@ -1814,7 +1816,7 @@ mdq = """
                AND isp.isp_program is NULL
 
 
-    Group By
+   Group By
         atn.individual,
         tc.InPunchTime,
         tc.Firstname,
@@ -1822,8 +1824,8 @@ mdq = """
         tc.OutPunchTime,
         tc.InPunchDay,
         atn.attendance,
-        tc.OutPunchDay
-
+        tc.OutPunchDay,
+        atn.Date
     HAVING
         cast(tc.InPunchTime as time)>='14:00'
         AND cast(tc.InPunchTime as time)<='17:00'
@@ -1840,7 +1842,7 @@ mdq = """
         atn.individual as 'Name',
         tc.InPunchDay as 'Date',
         concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, tc.InPunchDay) as 'Weekday',
+        datename(weekday, atn.Date) as 'Weekday',
         tc.InPunchTime as 'Shift Start',
         '11:59 PM' as 'Shift End',
                     'E103' as 'Home',
@@ -1862,7 +1864,7 @@ mdq = """
         WHERE atn.individual like 'CHIT%'
                 AND isp.isp_program is NULL
 
-    Group By
+   Group By
         atn.individual,
         tc.InPunchTime,
         tc.Firstname,
@@ -1870,8 +1872,8 @@ mdq = """
         tc.OutPunchTime,
         tc.InPunchDay,
         atn.attendance,
-        tc.OutPunchDay
-
+        tc.OutPunchDay,
+        atn.Date
     HAVING
         cast(tc.InPunchTime as time)>='6pm'
         AND atn.attendance like '%12%'
@@ -1886,7 +1888,7 @@ mdq = """
         atn.individual as 'Name',
         tc.OutPunchDay as 'Date',
         concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, tc.InPunchDay) as 'Weekday',
+        datename(weekday, atn.Date) as 'Weekday',
         '12:00 AM' as 'Shift Start',
         tc.OutPunchTime as 'Shift End',
                     'E103' as 'Home',
@@ -1901,14 +1903,14 @@ mdq = """
         AND ((cast(isp.begin_time as time)='12am' AND isp.[duration]>58))
 
         Left Join TimeCards2022 tc
-        ON (atn.date=tc.OutPunchDay)
+        ON (atn.date=tc.InPunchDay)
                 AND tc.Department='W103'
 
         WHERE atn.individual like 'CHIT%'
                AND isp.isp_program is NULL
 
 
-    Group By
+   Group By
         atn.individual,
         tc.InPunchTime,
         tc.Firstname,
@@ -1916,8 +1918,8 @@ mdq = """
         tc.OutPunchTime,
         tc.InPunchDay,
         atn.attendance,
-        tc.OutPunchDay
-
+        tc.OutPunchDay,
+        atn.Date
 
     HAVING
         cast(tc.InPunchTime as time)>='6pm'
@@ -1936,7 +1938,7 @@ mdq = """
         atn.individual as 'Name',
         tc.InPunchDay as 'Date',
         concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, tc.InPunchDay) as 'Weekday',
+        datename(weekday, atn.Date) as 'Weekday',
         tc.InPunchTime as 'Shift Start',
         tc.OutPunchTime as 'Shift End',
         'E103' as 'Home',
@@ -1963,7 +1965,7 @@ mdq = """
         -- AND (datepart(weekday,atn.date)<2 OR datepart(weekday,atn.date)>6)
 
 
-    Group By
+   Group By
         atn.individual,
         tc.InPunchTime,
         tc.Firstname,
@@ -1971,8 +1973,8 @@ mdq = """
         tc.OutPunchTime,
         tc.InPunchDay,
         atn.attendance,
-        tc.OutPunchDay
-
+        tc.OutPunchDay,
+        atn.Date
     HAVING
         datepart(hour, tc.InPunchTime)>=7
         AND datepart(hour, tc.InPunchTime)<=10
@@ -1989,7 +1991,7 @@ mdq = """
         atn.individual as 'Name',
         tc.InPunchDay as 'Date',
         concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, tc.InPunchDay) as 'Weekday',
+        datename(weekday, atn.Date) as 'Weekday',
         tc.InPunchTime as 'Shift Start',
         tc.OutPunchTime as 'Shift End',
                     'E104' AS 'Home',
@@ -2015,7 +2017,7 @@ mdq = """
                  -- IF THE INDIVIDUAL GOES TO DAY PROGRAM --
                and (datepart(weekday,atn.date)<2 OR datepart(weekday,atn.date)>6)
 
-    Group By
+   Group By
         atn.individual,
         tc.InPunchTime,
         tc.Firstname,
@@ -2023,8 +2025,8 @@ mdq = """
         tc.OutPunchTime,
         tc.InPunchDay,
         atn.attendance,
-        tc.OutPunchDay
-
+        tc.OutPunchDay,
+        atn.Date
     HAVING
         datepart(hour, tc.InPunchTime)>=7
         AND datepart(hour, tc.InPunchTime)<=10
@@ -2041,7 +2043,7 @@ mdq = """
         atn.individual as 'Name',
         tc.InPunchDay as 'Date',
         concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, tc.InPunchDay) as 'Weekday',
+        datename(weekday, atn.Date) as 'Weekday',
         tc.InPunchTime as 'Shift Start',
         tc.OutPunchTime as 'Shift End',
                     'E104' AS 'Home',
@@ -2063,7 +2065,7 @@ mdq = """
         WHERE atn.individual like 'WRIGHT%'
                 AND isp.isp_program is NULL
 
-    Group By
+   Group By
         atn.individual,
         tc.InPunchTime,
         tc.Firstname,
@@ -2071,8 +2073,8 @@ mdq = """
         tc.OutPunchTime,
         tc.InPunchDay,
         atn.attendance,
-        tc.OutPunchDay
-
+        tc.OutPunchDay,
+        atn.Date
     HAVING
         cast(tc.InPunchTime as time)>='14:00'
         AND cast(tc.InPunchTime as time)<='17:00'
@@ -2090,7 +2092,7 @@ mdq = """
         atn.individual as 'Name',
         tc.InPunchDay as 'Date',
         concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, tc.InPunchDay) as 'Weekday',
+        datename(weekday, atn.Date) as 'Weekday',
         tc.InPunchTime as 'Shift Start',
         '11:59 PM' as 'Shift End',
                     'E104' AS 'Home',
@@ -2112,7 +2114,7 @@ mdq = """
         WHERE atn.individual like 'WRIGHT%'
                AND isp.isp_program is NULL
 
-    Group By
+   Group By
         atn.individual,
         tc.InPunchTime,
         tc.Firstname,
@@ -2120,8 +2122,8 @@ mdq = """
         tc.OutPunchTime,
         tc.InPunchDay,
         atn.attendance,
-        tc.OutPunchDay
-
+        tc.OutPunchDay,
+        atn.Date
     HAVING
         cast(tc.InPunchTime as time)>='6pm'
         AND atn.attendance like '%12%'
@@ -2137,7 +2139,7 @@ mdq = """
         atn.individual as 'Name',
         tc.OutPunchDay as 'Date',
         concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, tc.InPunchDay) as 'Weekday',
+        datename(weekday, atn.Date) as 'Weekday',
         '12:00 AM' as 'Shift Start',
         tc.OutPunchTime as 'Shift End',
                     'E104' AS 'Home',
@@ -2151,13 +2153,13 @@ mdq = """
         AND ((cast(isp.begin_time as time)='12am' AND isp.[duration]>58))
 
         Left Join TimeCards2022 tc
-        ON (atn.date=tc.OutPunchDay)
+        ON (atn.date=tc.InPunchDay)
                 AND tc.Department='W104'
 
         WHERE atn.individual like 'WRIGHT%'
                AND isp.isp_program is NULL
 
-    Group By
+   Group By
         atn.individual,
         tc.InPunchTime,
         tc.Firstname,
@@ -2165,8 +2167,8 @@ mdq = """
         tc.OutPunchTime,
         tc.InPunchDay,
         atn.attendance,
-        tc.OutPunchDay
-
+        tc.OutPunchDay,
+        atn.Date
 
     HAVING
         cast(tc.InPunchTime as time)>='6pm'
@@ -2185,7 +2187,7 @@ mdq = """
         atn.individual as 'Name',
         tc.InPunchDay as 'Date',
         concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, tc.InPunchDay) as 'Weekday',
+        datename(weekday, atn.Date) as 'Weekday',
         tc.InPunchTime as 'Shift Start',
         tc.OutPunchTime as 'Shift End',
         '8 Nairn' as 'Home',
@@ -2211,7 +2213,7 @@ mdq = """
         -- IF THE INDIVIDUAL GOES TO DAY PROGRAM --
         --AND (datepart(weekday,atn.date)<2 OR datepart(weekday,atn.date)>6)
 
-    Group By
+   Group By
         atn.individual,
         tc.InPunchTime,
         tc.Firstname,
@@ -2219,8 +2221,8 @@ mdq = """
         tc.OutPunchTime,
         tc.InPunchDay,
         atn.attendance,
-        tc.OutPunchDay
-
+        tc.OutPunchDay,
+        atn.Date
     HAVING
         cast(tc.InPunchTime as time)>='07:00'
         AND cast(tc.InPunchTime as time)<='10:00'
@@ -2237,7 +2239,7 @@ mdq = """
         atn.individual as 'Name',
         tc.InPunchDay as 'Date',
         concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, tc.InPunchDay) as 'Weekday',
+        datename(weekday, atn.Date) as 'Weekday',
         tc.InPunchTime as 'Shift Start',
         tc.OutPunchTime as 'Shift End',
         '8 Nairn' as 'Home',
@@ -2262,7 +2264,7 @@ mdq = """
         AND isp.isp_program is NULL
 
 
-    Group By
+   Group By
         atn.individual,
         tc.InPunchTime,
         tc.Firstname,
@@ -2270,8 +2272,8 @@ mdq = """
         tc.OutPunchTime,
         tc.InPunchDay,
         atn.attendance,
-        tc.OutPunchDay
-
+        tc.OutPunchDay,
+        atn.Date
     HAVING
         cast(tc.InPunchTime as time)>='14:00'
         AND cast(tc.InPunchTime as time)<='17:00'
@@ -2289,7 +2291,7 @@ mdq = """
         atn.individual as 'Name',
         tc.InPunchDay as 'Date',
         concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, tc.InPunchDay) as 'Weekday',
+        datename(weekday, atn.Date) as 'Weekday',
         tc.InPunchTime as 'Shift Start',
         '11:59 PM' as 'Shift End',
         '8 Nairn' as 'Home',
@@ -2312,7 +2314,7 @@ mdq = """
         atn.individual like 'GOLDS%'
         AND isp.isp_program is NULL
 
-    Group By
+   Group By
         atn.individual,
         tc.InPunchTime,
         tc.Firstname,
@@ -2320,8 +2322,8 @@ mdq = """
         tc.OutPunchTime,
         tc.InPunchDay,
         atn.attendance,
-        tc.OutPunchDay
-
+        tc.OutPunchDay,
+        atn.Date
     HAVING
         cast(tc.InPunchTime as time)>='6pm'
         AND atn.attendance like '%12%'
@@ -2337,7 +2339,7 @@ mdq = """
         atn.individual as 'Name',
         tc.OutPunchDay as 'Date',
         concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, tc.InPunchDay) as 'Weekday',
+        datename(weekday, atn.Date) as 'Weekday',
         '12:00 AM' as 'Shift Start',
         tc.OutPunchTime as 'Shift End',
         '8 Nairn' as 'Home',
@@ -2352,13 +2354,13 @@ mdq = """
             AND ((cast(isp.begin_time as time)='12am' AND isp.[duration]>58))
 
         Left Join TimeCards2022 tc
-            ON (atn.date=tc.OutPunchDay)
+            ON (atn.date=tc.InPunchDay)
             AND tc.Department='SA8'
 
     WHERE atn.individual like 'GOLDS%'
     AND isp.isp_program is NULL
 
-    Group By
+   Group By
         atn.individual,
         tc.InPunchTime,
         tc.Firstname,
@@ -2366,15 +2368,15 @@ mdq = """
         tc.OutPunchTime,
         tc.InPunchDay,
         atn.attendance,
-        tc.OutPunchDay
-
+        tc.OutPunchDay,
+        atn.Date
     HAVING
         cast(tc.InPunchTime as time)>='6pm'
         AND atn.attendance like '%12%'
 
 
     )
-    """
+"""
 isp_data = pd.read_sql_query(mdq, con=engine)
 print(isp_data)
 
