@@ -50,7 +50,7 @@ from openpyxl.worksheet.table import Table
 from openpyxl.utils import get_column_letter
 
 # Missing Data Query
-mdq = """ 
+mdq = """
 
     (Select
         atn.individual as 'Name',
@@ -117,8 +117,8 @@ mdq = """
             Left Join isp
                 ON (atn.date=isp.date)
                 AND (isp.Individual=atn.individual)
-                AND ((cast(isp.begin_time as time)>='6pm' AND isp.[duration]>58)
-                    AND (cast(isp.begin_time as time)<='11pm' AND isp.[duration]>58))
+                AND ((cast(isp.begin_time as time)>='6pm' AND isp.[duration]>30)
+                    AND (cast(isp.begin_time as time)<='11pm' AND isp.[duration]>30))
 
             Left Join   TimeCards2022 tc
                 ON (atn.date=tc.InPunchDay)
@@ -252,8 +252,8 @@ mdq = """
             Left Join isp
                 ON (atn.date=isp.date)
                 AND (isp.Individual=atn.individual)
-                AND ((cast(isp.begin_time as time)>='6pm' AND isp.[duration]>58)
-                    AND (cast(isp.begin_time as time)<='11pm' AND isp.[duration]>58))
+                AND ((cast(isp.begin_time as time)>='6pm' AND isp.[duration]>30)
+                    AND (cast(isp.begin_time as time)<='11pm' AND isp.[duration]>30))
 
             Left Join   TimeCards2022 tc
                 ON (atn.date=tc.InPunchDay)
@@ -441,8 +441,8 @@ mdq = """
         left Join isp
             ON (atn.date=isp.date)
             AND (isp.Individual=atn.individual)
-            AND ((cast(isp.begin_time as time)>='6pm' AND isp.[duration]>58)
-            AND (cast(isp.begin_time as time)<='11pm' AND isp.[duration]>58))
+            AND ((cast(isp.begin_time as time)>='6pm' AND isp.[duration]>30)
+            AND (cast(isp.begin_time as time)<='11pm' AND isp.[duration]>30))
 
         Left Join TimeCards2022 tc
             ON (atn.date=tc.InPunchDay)
@@ -639,8 +639,8 @@ mdq = """
         left Join isp
             ON (atn.date=isp.date)
             AND (isp.Individual=atn.individual)
-            AND ((cast(isp.begin_time as time)>='6pm' AND isp.[duration]>58)
-            AND (cast(isp.begin_time as time)<='11pm' AND isp.[duration]>58))
+            AND ((cast(isp.begin_time as time)>='6pm' AND isp.[duration]>30)
+            AND (cast(isp.begin_time as time)<='11pm' AND isp.[duration]>30))
 
         Left Join TimeCards2022 tc
             ON (atn.date=tc.InPunchDay)
@@ -837,8 +837,8 @@ mdq = """
         left Join isp
             ON (atn.date=isp.date)
             AND (isp.Individual=atn.individual)
-            AND ((cast(isp.begin_time as time)>='6pm' AND isp.[duration]>58)
-            AND (cast(isp.begin_time as time)<='11pm' AND isp.[duration]>58))
+            AND ((cast(isp.begin_time as time)>='6pm' AND isp.[duration]>30)
+            AND (cast(isp.begin_time as time)<='11pm' AND isp.[duration]>30))
 
         Left Join TimeCards2022 tc
             ON (atn.date=tc.InPunchDay)
@@ -1033,8 +1033,8 @@ mdq = """
         left Join isp
             ON (atn.date=isp.date)
             AND (isp.Individual=atn.individual)
-            AND ((cast(isp.begin_time as time)>='6pm' AND isp.[duration]>58)
-            AND (cast(isp.begin_time as time)<='11pm' AND isp.[duration]>58))
+            AND ((cast(isp.begin_time as time)>='6pm' AND isp.[duration]>30)
+            AND (cast(isp.begin_time as time)<='11pm' AND isp.[duration]>30))
 
         Left Join TimeCards2022 tc
             ON (atn.date=tc.InPunchDay)
@@ -1228,8 +1228,8 @@ mdq = """
         left Join isp
                 ON (atn.date=isp.date)
                 AND (isp.Individual=atn.individual)
-                AND ((cast(isp.begin_time as time)>='6pm' AND isp.[duration]>58)
-                    AND (cast(isp.begin_time as time)<='11pm' AND isp.[duration]>58))
+                AND ((cast(isp.begin_time as time)>='6pm' AND isp.[duration]>30)
+                    AND (cast(isp.begin_time as time)<='11pm' AND isp.[duration]>30))
 
         Left Join TimeCards2022 tc
             ON (atn.date=tc.InPunchDay)
@@ -1463,8 +1463,8 @@ mdq = """
         left Join isp
         ON (atn.date=isp.date)
         AND (isp.Individual=atn.individual)
-        AND ((cast(isp.begin_time as time)>='6pm' AND isp.[duration]>58)
-        AND (cast(isp.begin_time as time)<='11pm' AND isp.[duration]>58))
+        AND ((cast(isp.begin_time as time)>='6pm' AND isp.[duration]>30)
+        AND (cast(isp.begin_time as time)<='11pm' AND isp.[duration]>30))
 
         Left Join TimeCards2022 tc
         ON (atn.date=tc.InPunchDay)
@@ -1657,8 +1657,8 @@ mdq = """
              left Join isp
                 ON (atn.date=isp.date)
                 AND (isp.Individual=atn.individual)
-                AND ((cast(isp.begin_time as time)>='6pm' AND isp.[duration]>58)
-                    AND (cast(isp.begin_time as time)<='11pm' AND isp.[duration]>58))
+                AND ((cast(isp.begin_time as time)>='6pm' AND isp.[duration]>30)
+                    AND (cast(isp.begin_time as time)<='11pm' AND isp.[duration]>30))
 
         Left Join TimeCards2022 tc
             ON (atn.date=tc.InPunchDay)
@@ -1854,8 +1854,8 @@ mdq = """
              left Join isp
                 ON (atn.date=isp.date)
                 AND (isp.Individual=atn.individual)
-                AND ((cast(isp.begin_time as time)>='6pm' AND isp.[duration]>58)
-                    AND (cast(isp.begin_time as time)<='11pm' AND isp.[duration]>58))
+                AND ((cast(isp.begin_time as time)>='6pm' AND isp.[duration]>30)
+                    AND (cast(isp.begin_time as time)<='11pm' AND isp.[duration]>30))
 
         Left Join TimeCards2022 tc
             ON (atn.date=tc.InPunchDay)
@@ -2104,8 +2104,8 @@ mdq = """
         left Join isp
                 ON (atn.date=isp.date)
                 AND (isp.Individual=atn.individual)
-                AND ((cast(isp.begin_time as time)>='6pm' AND isp.[duration]>58)
-                    AND (cast(isp.begin_time as time)<='11pm' AND isp.[duration]>58))
+                AND ((cast(isp.begin_time as time)>='6pm' AND isp.[duration]>30)
+                    AND (cast(isp.begin_time as time)<='11pm' AND isp.[duration]>30))
 
         Left Join TimeCards2022 tc
             ON (atn.date=tc.InPunchDay)
@@ -2303,8 +2303,8 @@ mdq = """
         left Join isp
             ON (atn.date=isp.date)
             AND (isp.Individual=atn.individual)
-            AND ((cast(isp.begin_time as time)>='6pm' AND isp.[duration]>58)
-            AND (cast(isp.begin_time as time)<='11pm' AND isp.[duration]>58))
+            AND ((cast(isp.begin_time as time)>='6pm' AND isp.[duration]>30)
+            AND (cast(isp.begin_time as time)<='11pm' AND isp.[duration]>30))
 
         Left Join TimeCards2022 tc
             ON (atn.date=tc.InPunchDay)
