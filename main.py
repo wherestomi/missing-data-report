@@ -187,6 +187,53 @@ mdq = """
     )
 
     UNION
+    (Select 
+    atn.individual as 'Name',
+    tc.InPunchDay as 'Date',
+    concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
+    datename(weekday, atn.date) as 'Weekday', 
+    tc.InPunchTime as 'Shift Start', 
+    tc.OutPunchTime as 'Shift End',
+    'Castlebrook' as 'Home',
+    'Paul' as 'Manager',
+    'New Castle County' as 'County'
+
+FROM [Attendance2022] atn
+
+    left Join isp
+        ON (atn.date=isp.date)
+        AND (isp.Individual=atn.individual)
+        AND ((cast(isp.Begin_Time as time)>='07:00' AND isp.[Duration]>120)
+        AND (cast(isp.Begin_Time as time)<='09:00' AND isp.[Duration]>120))
+
+
+    Left Join TimeCards2022 tc 
+        ON atn.date=tc.InPunchDay
+        AND tc.Department='13B Castlebrook'
+
+WHERE 
+    atn.individual like 'FAUST%'
+    AND isp.ISP_Program is NULL
+    AND atn.date >= '09/15/2022'
+    -- IF THE INDIVIDUAL GOES TO DAY PROGRAM --
+    -- AND (datepart(weekday,atn.date)<2 OR datepart(weekday,atn.date)>6) 
+
+Group By 
+    atn.individual,
+    tc.InPunchTime,
+    tc.Firstname,
+    tc.Lastname,
+    tc.OutPunchTime, 
+    tc.InPunchDay,
+    atn.attendance,
+    atn.date
+
+HAVING 
+    datepart(hour, tc.InPunchTime)>=7
+    AND datepart(hour, tc.InPunchTime)<=10
+    AND atn.attendance like '%12%')
+    
+    UNION
     (Select
         atn.individual as 'Name',
         tc.InPunchDay as 'Date',
