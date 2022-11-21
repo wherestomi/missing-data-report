@@ -46,6 +46,9 @@ cnxn_url = URL.create("mssql+pyodbc", query={"odbc_connect": az.cnxn_string})
 engine = sql.create_engine(cnxn_url)
 
 
+from openpyxl.worksheet.table import Table
+from openpyxl.utils import get_column_letter
+
 # Missing Data Query
 mdq = """  
     (Select
@@ -90,6 +93,7 @@ mdq = """
     HAVING
         tc.InPunchTime>='14:00'
         AND tc.InPunchTime<='17:00'
+        AND tc.OutPunchTime>='20:00'
         AND atn.attendance like '%12%'
 
     )
@@ -224,6 +228,7 @@ mdq = """
     HAVING
         tc.InPunchTime>='14:00'
         AND tc.InPunchTime<='17:00'
+        AND tc.OutPunchTime>='20:00'
         AND atn.attendance like '%12%'
 
     )
@@ -410,6 +415,7 @@ mdq = """
     HAVING
         cast(tc.InPunchTime as time)>='14:00'
         AND cast(tc.InPunchTime as time)<='17:00'
+        AND tc.OutPunchTime>='20:00'
         AND atn.attendance like '%12%'
 
 
@@ -607,6 +613,7 @@ mdq = """
     HAVING
         cast(tc.InPunchTime as time)>='14:00'
         AND cast(tc.InPunchTime as time)<='17:00'
+        AND tc.OutPunchTime>='20:00'
         AND atn.attendance like '%12%'
 
 
@@ -804,6 +811,7 @@ mdq = """
     HAVING
         cast(tc.InPunchTime as time)>='14:00'
         AND cast(tc.InPunchTime as time)<='17:00'
+        AND tc.OutPunchTime>='20:00'
         AND atn.attendance like '%12%'
 
 
@@ -999,6 +1007,7 @@ mdq = """
     HAVING
         cast(tc.InPunchTime as time)>='14:00'
         AND cast(tc.InPunchTime as time)<='17:00'
+        AND tc.OutPunchTime>='20:00'
         AND atn.attendance like '%12%'
 
 
@@ -1192,6 +1201,7 @@ mdq = """
     HAVING
         cast(tc.InPunchTime as time)>='14:00'
         AND cast(tc.InPunchTime as time)<='17:00'
+        AND tc.OutPunchTime>='20:00'
         AND atn.attendance like '%12%'
 
 
@@ -1429,6 +1439,7 @@ mdq = """
     HAVING
         cast(tc.InPunchTime as time)>='14:00'
         AND cast(tc.InPunchTime as time)<='17:00'
+        AND tc.OutPunchTime>='20:00'
         AND atn.attendance like '%12%'
 
 
@@ -1619,6 +1630,7 @@ mdq = """
     HAVING
         cast(tc.InPunchTime as time)>='14:00'
         AND cast(tc.InPunchTime as time)<='17:00'
+        AND tc.OutPunchTime>='20:00'
         AND atn.attendance like '%12%'
 
 
@@ -1815,6 +1827,7 @@ mdq = """
     HAVING
         cast(tc.InPunchTime as time)>='14:00'
         AND cast(tc.InPunchTime as time)<='17:00'
+        AND tc.OutPunchTime>='20:00'
         AND atn.attendance like '%12%'
 
 
@@ -2063,6 +2076,7 @@ mdq = """
     HAVING
         cast(tc.InPunchTime as time)>='14:00'
         AND cast(tc.InPunchTime as time)<='17:00'
+        AND tc.OutPunchTime>='20:00'
         AND atn.attendance like '%12%'
 
 
@@ -2261,6 +2275,7 @@ mdq = """
     HAVING
         cast(tc.InPunchTime as time)>='14:00'
         AND cast(tc.InPunchTime as time)<='17:00'
+        AND tc.OutPunchTime>='20:00'
         AND atn.attendance like '%12%'
 
 
@@ -2488,8 +2503,8 @@ pdf_data = pd.read_sql_query(pdf, con=engine)
 print(pdf_data)
 
 # MissingData Excel File
-xlwriter = pd.ExcelWriter(fr"{save_path}\Book1.xlsx")
-isp_data.to_excel(xlwriter, sheet_name="ISPs", index=False, startrow=2)
+xlwriter = pd.ExcelWriter(fr"{save_path}\DataReport({date}).xlsx")
+isp_data.to_excel(xlwriter, sheet_name="ISPs", index=False)
 apt_data.to_excel(xlwriter, sheet_name="Apts", index=False)
 ap_data.to_excel(xlwriter, sheet_name="Attendance_Points", index=False)
 pdf_data.to_excel(xlwriter, sheet_name="Performance_Discussion_Forms", index=False)
