@@ -5,7 +5,6 @@ import create_timecard_table
 import create_atn_points_table
 import create_pdf_table
 import isp_table_clean
-import missing_data_query
 import pandas as pd
 from pandasql import sqldf
 from sklearn import datasets
@@ -15,7 +14,7 @@ import azure_cnxn as az
 
 
 date = input("What's Today's Date?:   ")
-save_path = fr"C:\Users\olato\OneDrive\Desktop\TOBOLA QA REVIEW\Data_Pulls\11_November\{date}"
+save_path = fr"C:\Users\olato\OneDrive\Desktop\TOBOLA QA REVIEW\Data_Pulls\2022\12_December\{date}"
 nc_isp_path = fr"{save_path}\RAW\nc_isp.xlsx"
 kc_isp_path = fr"{save_path}\RAW\kc_isp.xlsx"
 q1 = fr"{save_path}\RAW\q1atn.xlsx"
@@ -52,173 +51,38 @@ from openpyxl.utils import get_column_letter
 # Missing Data Query
 mdq = """
 
-    (Select
-        atn.individual as 'Name',
-        atn.date as 'Date',
-        concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, atn.date) as 'Weekday',
-        tc.InPunchTime as 'Shift Start',
-        tc.OutPunchTime as 'Shift End',
-        'Castlebrook' as 'Home',
-        'Paul' as 'Manager',
-        'New Castle County' as 'County'
-
-    From
-        Attendance2022 atn
-
-        LEFT JOIN isp
-            ON atn.date=isp.date
-            AND isp.Individual=atn.individual
-            AND ((cast(isp.begin_time as time)>='14:00' AND isp.[duration]>120)
-                AND (cast(isp.begin_time as time)<='17:00' AND isp.[duration]>120))
-
-        Left Join TimeCards2022 tc
-            ON atn.date=tc.InPunchDay
-            AND tc.Department='13B Castlebrook'
-
-        WHERE
-            atn.individual like 'HEAD%'
-            AND isp.isp_program is NULL
-
-
-   Group By
-        atn.individual,
-        tc.InPunchTime,
-        tc.Firstname,
-        tc.Lastname,
-        tc.OutPunchTime,
-        tc.InPunchDay,
-        atn.attendance,
-        tc.OutPunchDay,
-        atn.Date
-    HAVING
-        tc.InPunchTime>='14:00'
-        AND tc.InPunchTime<='17:00'
-        AND tc.OutPunchTime>='20:00'
-        AND atn.attendance like '%12%'
-
-    )
-
-    UNION
-    (Select
-        atn.individual as 'Name',
-        tc.InPunchDay as 'Date',
-        concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, atn.Date) as 'Weekday',
-        tc.InPunchTime as 'Shift Start',
-        '11:59 PM' as 'Shift End',
-        'Castlebrook' as 'Home',
-        'Paul' as 'Manager',
-        'New Castle County' as 'County'
-
-    FROM
-        [Attendance2022] atn
-
-            Left Join isp
-                ON (atn.date=isp.date)
-                AND (isp.Individual=atn.individual)
-                AND ((cast(isp.begin_time as time)>='6pm' AND isp.[duration]>30)
-                    AND (cast(isp.begin_time as time)<='11pm' AND isp.[duration]>30))
-
-            Left Join   TimeCards2022 tc
-                ON (atn.date=tc.InPunchDay)
-                AND tc.Department='13B Castlebrook'
-
-    WHERE
-        atn.individual like 'HEAD%'
-        AND isp.isp_program is NULL
-
-   Group By
-        atn.individual,
-        tc.InPunchTime,
-        tc.Firstname,
-        tc.Lastname,
-        tc.OutPunchTime,
-        tc.InPunchDay,
-        atn.attendance,
-        tc.OutPunchDay,
-        atn.Date
-    HAVING cast(tc.InPunchTime as time)>='6pm'
-        AND atn.attendance like '%12%'
-
-        )
-
-        UNION
-        (Select
-        atn.individual as 'Name',
-        tc.OutPunchDay as 'Date',
-        concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, atn.Date) as 'Weekday',
-        '12:00 AM' as 'Shift Start',
-        tc.OutPunchTime as 'Shift End',
-        'Castlebrook' as 'Home',
-        'Paul' as 'Manager',
-        'New Castle County' as 'County'
-
-    FROM
-        [Attendance2022] atn
-
-            Left Join isp
-                ON (atn.date=isp.date)
-                AND (isp.Individual=atn.individual)
-                AND ((cast(isp.begin_time as time)='12:00 AM' AND isp.[duration]>58))
-
-            Left Join TimeCards2022 tc
-                ON (atn.date=tc.InPunchDay)
-                AND tc.Department='13B Castlebrook'
-
-    WHERE
-        atn.individual like 'HEAD%'
-        AND isp.isp_program is NULL
-
-   Group By
-        atn.individual,
-        tc.InPunchTime,
-        tc.Firstname,
-        tc.Lastname,
-        tc.OutPunchTime,
-        tc.InPunchDay,
-        atn.attendance,
-        tc.OutPunchDay,
-        atn.Date
-    HAVING cast(tc.InPunchTime as time)>='6pm'
-        AND atn.attendance like '%12%'
-
-    )
-
-    UNION
-    (Select 
+--DEVEN HEADEN --
+(Select 
     atn.individual as 'Name',
-    tc.InPunchDay as 'Date',
+    atn.Date as 'Date',
     concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
     datename(weekday, atn.date) as 'Weekday', 
     tc.InPunchTime as 'Shift Start', 
     tc.OutPunchTime as 'Shift End',
     'Castlebrook' as 'Home',
-    'Paul' as 'Manager',
+    'Paul' as 'Manager', 
     'New Castle County' as 'County'
 
-FROM [Attendance2022] atn
+From 
+    Attendance2022 atn
 
-    left Join isp
-        ON (atn.date=isp.date)
-        AND (isp.Individual=atn.individual)
-        AND ((cast(isp.Begin_Time as time)>='07:00' AND isp.[Duration]>120)
-        AND (cast(isp.Begin_Time as time)<='09:00' AND isp.[Duration]>120))
-
+    LEFT JOIN isp
+        ON atn.date=isp.date 
+        AND isp.Individual=atn.individual
+        AND ((cast(isp.begin_time as time)>='14:00' AND isp.[duration]>120)
+            AND (cast(isp.begin_time as time)<='17:00' AND isp.[duration]>120))
 
     Left Join TimeCards2022 tc 
         ON atn.date=tc.InPunchDay
         AND tc.Department='13B Castlebrook'
 
-WHERE 
-    atn.individual like 'FAUST%'
-    AND isp.ISP_Program is NULL
-    AND atn.date >= '09/15/2022'
-    -- IF THE INDIVIDUAL GOES TO DAY PROGRAM --
-    -- AND (datepart(weekday,atn.date)<2 OR datepart(weekday,atn.date)>6) 
+    WHERE 
+        atn.individual like 'HEAD%'
+        AND isp.isp_program is NULL
+    
 
-Group By 
+Group By atn.date, tc.EarnHours,
+ 
     atn.individual,
     tc.InPunchTime,
     tc.Firstname,
@@ -226,2204 +90,2410 @@ Group By
     tc.OutPunchTime, 
     tc.InPunchDay,
     atn.attendance,
-    atn.date
+    tc.OutPunchDay
 
 HAVING 
-    datepart(hour, tc.InPunchTime)>=7
-    AND datepart(hour, tc.InPunchTime)<=10
-    AND atn.attendance like '%12%')
-    
-    UNION
-    (Select
-        atn.individual as 'Name',
-        tc.InPunchDay as 'Date',
-        concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, atn.Date) as 'Weekday',
-        tc.InPunchTime as 'Shift Start',
-        tc.OutPunchTime as 'Shift End',
-        'Castlebrook' as 'Home',
-        'Paul' as 'Manager',
-        'New Castle County' as 'County'
+    tc.InPunchTime>='14:00'
+    AND tc.InPunchTime<='17:00'
+      AND atn.attendance like '%12%'
+    AND tc.EarnHours > 3
+  
 
-    From
-        Attendance2022 atn
+)
 
-        LEFT JOIN isp
-            ON atn.date=isp.date
-            AND isp.Individual=atn.individual
-            AND ((cast(isp.begin_time as time)>='14:00' AND isp.[duration]>120)
-                    AND (cast(isp.begin_time as time)<='17:00' AND isp.[duration]>120))
+UNION
+(Select 
+    atn.individual as 'Name',
+    atn.Date as 'Date',
+    concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
+    datename(weekday, atn.date) as 'Weekday', 
+    tc.InPunchTime as 'Shift Start', 
+    '11:59 PM' as 'Shift End',
+    'Castlebrook' as 'Home',
+    'Paul' as 'Manager', 
+    'New Castle County' as 'County'
 
-        Left Join TimeCards2022 tc
-            ON atn.date=tc.InPunchDay
+FROM 
+    [Attendance2022] atn
+
+        Left Join isp
+            ON (atn.date=isp.date)
+            AND (isp.Individual=atn.individual)
+            AND ((cast(isp.begin_time as time)>='6pm' AND isp.[duration]>=30)
+                AND (cast(isp.begin_time as time)<='11pm' AND isp.[duration]>=30))
+        
+        Left Join   TimeCards2022 tc
+            ON (atn.date=tc.InPunchDay)
             AND tc.Department='13B Castlebrook'
 
-        WHERE
-            atn.individual like 'FAUST%'
-            AND isp.isp_program is NULL
-
-
-   Group By
-        atn.individual,
-        tc.InPunchTime,
-        tc.Firstname,
-        tc.Lastname,
-        tc.OutPunchTime,
-        tc.InPunchDay,
-        atn.attendance,
-        tc.OutPunchDay,
-        atn.Date
-    HAVING
-        tc.InPunchTime>='14:00'
-        AND tc.InPunchTime<='17:00'
-        AND tc.OutPunchTime>='20:00'
-        AND atn.attendance like '%12%'
-
-    )
-
-    UNION
-    (Select
-        atn.individual as 'Name',
-        tc.InPunchDay as 'Date',
-        concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, atn.Date) as 'Weekday',
-        tc.InPunchTime as 'Shift Start',
-        '11:59 PM' as 'Shift End',
-        'Castlebrook' as 'Home',
-        'Paul' as 'Manager',
-        'New Castle County' as 'County'
-
-    FROM
-        [Attendance2022] atn
-
-            Left Join isp
-                ON (atn.date=isp.date)
-                AND (isp.Individual=atn.individual)
-                AND ((cast(isp.begin_time as time)>='6pm' AND isp.[duration]>30)
-                    AND (cast(isp.begin_time as time)<='11pm' AND isp.[duration]>30))
-
-            Left Join   TimeCards2022 tc
-                ON (atn.date=tc.InPunchDay)
-                AND tc.Department='13B Castlebrook'
-
-    WHERE
-        atn.individual like 'FAUST%'
-        AND isp.isp_program is NULL
-
-   Group By
-        atn.individual,
-        tc.InPunchTime,
-        tc.Firstname,
-        tc.Lastname,
-        tc.OutPunchTime,
-        tc.InPunchDay,
-        atn.attendance,
-        tc.OutPunchDay,
-        atn.Date
-    HAVING cast(tc.InPunchTime as time)>='6pm'
-        AND atn.attendance like '%12%'
-
-        )
-
-        UNION
-        (Select
-        atn.individual as 'Name',
-        tc.OutPunchDay as 'Date',
-        concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, atn.Date) as 'Weekday',
-        '12:00 AM' as 'Shift Start',
-        tc.OutPunchTime as 'Shift End',
-        'Castlebrook' as 'Home',
-        'Paul' as 'Manager',
-        'New Castle County' as 'County'
-
-    FROM
-        [Attendance2022] atn
-
-            Left Join isp
-                ON (atn.date=isp.date)
-                AND (isp.Individual=atn.individual)
-                AND ((cast(isp.begin_time as time)='12:00 AM' AND isp.[duration]>58))
-
-            Left Join TimeCards2022 tc
-                ON (atn.date=tc.InPunchDay)
-                AND tc.Department='13B Castlebrook'
-
-    WHERE
-        atn.individual like 'FAUST%'
-        AND isp.isp_program is NULL
-
-   Group By
-        atn.individual,
-        tc.InPunchTime,
-        tc.Firstname,
-        tc.Lastname,
-        tc.OutPunchTime,
-        tc.InPunchDay,
-        atn.attendance,
-        tc.OutPunchDay,
-        atn.Date
-    HAVING cast(tc.InPunchTime as time)>='6pm'
-        AND atn.attendance like '%12%'
-
-    )
-
-
-    UNION
-    (Select
-        atn.individual as 'Name',
-        tc.InPunchDay as 'Date',
-        concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, atn.Date) as 'Weekday',
-        tc.InPunchTime as 'Shift Start',
-        tc.OutPunchTime as 'Shift End',
-        '3 Nairn' as 'Home',
-        'David' as 'Manager',
-        'New Castle County' as 'County'
-
-    FROM
-        [attendance2022] atn
-
-        left Join isp
-            ON (atn.date=isp.date)
-            AND (isp.Individual=atn.individual)
-            AND ((cast(isp.begin_time as time)>='07:00' AND isp.[duration]>120)
-            AND (cast(isp.begin_time as time)<='10:00' AND isp.[duration]>120))
-
-        Left Join TimeCards2022 tc
-            ON atn.date=tc.InPunchDay
-            AND tc.Department='SA3'
-
-    WHERE
-        atn.individual like 'GARR%'
-        AND isp.isp_program is NULL
-        -- IF THE INDIVIDUAL GOES TO DAY PROGRAM --
-        AND (datepart(weekday,atn.date)<2 OR datepart(weekday,atn.date)>6)
-
-   Group By
-        atn.individual,
-        tc.InPunchTime,
-        tc.Firstname,
-        tc.Lastname,
-        tc.OutPunchTime,
-        tc.InPunchDay,
-        atn.attendance,
-        tc.OutPunchDay,
-        atn.Date
-    HAVING
-        cast(tc.InPunchTime as time)>='07:00'
-        AND cast(tc.InPunchTime as time)<='10:00'
-        AND atn.attendance like '%12%'
-
-
-
-
-
-    )
-    UNION
-    (Select
-        atn.individual as 'Name',
-        tc.InPunchDay as 'Date',
-        concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, atn.Date) as 'Weekday',
-        tc.InPunchTime as 'Shift Start',
-        tc.OutPunchTime as 'Shift End',
-        '3 Nairn' as 'Home',
-        'David' as 'Manager',
-        'New Castle County' as 'County'
-
-
-    FROM [attendance2022] atn
-
-        left Join isp
-            ON (atn.date=isp.date)
-            AND (isp.Individual=atn.individual)
-            AND ((cast(isp.begin_time as time)>='14:00' AND isp.[duration]>120)
-            AND (cast(isp.begin_time as time)<='17:00' AND isp.[duration]>120))
-
-        Left Join TimeCards2022 tc
-            ON atn.date=tc.InPunchDay
-            AND tc.Department='SA3'
-
-    WHERE
-        atn.individual like 'GARR%'
-        AND isp.isp_program is NULL
-
-
-   Group By
-        atn.individual,
-        tc.InPunchTime,
-        tc.Firstname,
-        tc.Lastname,
-        tc.OutPunchTime,
-        tc.InPunchDay,
-        atn.attendance,
-        tc.OutPunchDay,
-        atn.Date
-    HAVING
-        cast(tc.InPunchTime as time)>='14:00'
-        AND cast(tc.InPunchTime as time)<='17:00'
-        AND tc.OutPunchTime>='20:00'
-        AND atn.attendance like '%12%'
-
-
-
-
-
-    )
-    UNION
-    (Select
-        atn.individual as 'Name',
-        tc.InPunchDay as 'Date',
-        concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, atn.Date) as 'Weekday',
-        tc.InPunchTime as 'Shift Start',
-        '11:59 PM' as 'Shift End',
-        '3 Nairn' as 'Home',
-        'David' as 'Manager',
-        'New Castle County' as 'County'
-
-    FROM [attendance2022] atn
-
-        left Join isp
-            ON (atn.date=isp.date)
-            AND (isp.Individual=atn.individual)
-            AND ((cast(isp.begin_time as time)>='6pm' AND isp.[duration]>30)
-            AND (cast(isp.begin_time as time)<='11pm' AND isp.[duration]>30))
-
-        Left Join TimeCards2022 tc
-            ON (atn.date=tc.InPunchDay)
-            AND tc.Department='SA3'
-
-    WHERE
-        atn.individual like 'GARR%'
-        AND isp.isp_program is NULL
-
-   Group By
-        atn.individual,
-        tc.InPunchTime,
-        tc.Firstname,
-        tc.Lastname,
-        tc.OutPunchTime,
-        tc.InPunchDay,
-        atn.attendance,
-        tc.OutPunchDay,
-        atn.Date
-    HAVING
-        cast(tc.InPunchTime as time)>='6pm'
-        AND atn.attendance like '%12%'
-
-
-
-
-
-    )
-    UNION
-    (Select
-        atn.individual as 'Name',
-        tc.OutPunchDay as 'Date',
-        concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, atn.Date) as 'Weekday',
-        '12:00 AM' as 'Shift Start',
-        tc.OutPunchTime as 'Shift End',
-        '3 Nairn' as 'Home',
-        'David' as 'Manager',
-        'New Castle County' as 'County'
-
-    FROM [attendance2022] atn
-
-        left Join isp
-            ON (atn.date=isp.date)
-            AND (isp.Individual=atn.individual)
-            AND ((cast(isp.begin_time as time)='12am' AND isp.[duration]>58))
-
-        Left Join TimeCards2022 tc
-            ON (atn.date=tc.InPunchDay)
-            AND tc.Department='SA3'
-
-    WHERE atn.individual like 'GARR%'
-        AND isp.isp_program is NULL
-
-   Group By
-        atn.individual,
-        tc.InPunchTime,
-        tc.Firstname,
-        tc.Lastname,
-        tc.OutPunchTime,
-        tc.InPunchDay,
-        atn.attendance,
-        tc.OutPunchDay,
-        atn.Date
-    HAVING
-        cast(tc.InPunchTime as time)>='6pm'
-        AND atn.attendance like '%12%'
-
-
-
-
-
-
-    )
-
-
-
-    UNION
-    (Select
-        atn.individual as 'Name',
-        tc.InPunchDay as 'Date',
-        concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, atn.Date) as 'Weekday',
-        tc.InPunchTime as 'Shift Start',
-        tc.OutPunchTime as 'Shift End',
-        '3 Nairn' as 'Home',
-        'David' as 'Manager',
-        'New Castle County' as 'County'
-
-    FROM
-        [attendance2022] atn
-
-        left Join isp
-            ON (atn.date=isp.date)
-            AND (isp.Individual=atn.individual)
-            AND ((cast(isp.begin_time as time)>='07:00' AND isp.[duration]>120)
-            AND (cast(isp.begin_time as time)<='10:00' AND isp.[duration]>120))
-
-        Left Join TimeCards2022 tc
-            ON atn.date=tc.InPunchDay
-            AND tc.Department='SA3'
-
-    WHERE
-        atn.individual like 'LANI%'
-        AND isp.isp_program is NULL
-        -- IF THE INDIVIDUAL GOES TO DAY PROGRAM --
-        AND (datepart(weekday,atn.date)<2 OR datepart(weekday,atn.date)>6)
-
-   Group By
-        atn.individual,
-        tc.InPunchTime,
-        tc.Firstname,
-        tc.Lastname,
-        tc.OutPunchTime,
-        tc.InPunchDay,
-        atn.attendance,
-        tc.OutPunchDay,
-        atn.Date
-    HAVING
-        cast(tc.InPunchTime as time)>='07:00'
-        AND cast(tc.InPunchTime as time)<='10:00'
-        AND atn.attendance like '%12%'
-
-
-
-
-
-    )
-    UNION
-    (Select
-        atn.individual as 'Name',
-        tc.InPunchDay as 'Date',
-        concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, atn.Date) as 'Weekday',
-        tc.InPunchTime as 'Shift Start',
-        tc.OutPunchTime as 'Shift End',
-        '3 Nairn' as 'Home',
-        'David' as 'Manager',
-        'New Castle County' as 'County'
-
-
-    FROM [attendance2022] atn
-
-        left Join isp
-            ON (atn.date=isp.date)
-            AND (isp.Individual=atn.individual)
-            AND ((cast(isp.begin_time as time)>='14:00' AND isp.[duration]>120)
-            AND (cast(isp.begin_time as time)<='17:00' AND isp.[duration]>120))
-
-        Left Join TimeCards2022 tc
-            ON atn.date=tc.InPunchDay
-            AND tc.Department='SA3'
-
-    WHERE
-        atn.individual like 'LANI%'
-        AND isp.isp_program is NULL
-
-
-   Group By
-        atn.individual,
-        tc.InPunchTime,
-        tc.Firstname,
-        tc.Lastname,
-        tc.OutPunchTime,
-        tc.InPunchDay,
-        atn.attendance,
-        tc.OutPunchDay,
-        atn.Date
-    HAVING
-        cast(tc.InPunchTime as time)>='14:00'
-        AND cast(tc.InPunchTime as time)<='17:00'
-        AND tc.OutPunchTime>='20:00'
-        AND atn.attendance like '%12%'
-
-
-
-
-
-    )
-    UNION
-    (Select
-        atn.individual as 'Name',
-        tc.InPunchDay as 'Date',
-        concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, atn.Date) as 'Weekday',
-        tc.InPunchTime as 'Shift Start',
-        '11:59 PM' as 'Shift End',
-        '3 Nairn' as 'Home',
-        'David' as 'Manager',
-        'New Castle County' as 'County'
-
-    FROM [attendance2022] atn
-
-        left Join isp
-            ON (atn.date=isp.date)
-            AND (isp.Individual=atn.individual)
-            AND ((cast(isp.begin_time as time)>='6pm' AND isp.[duration]>30)
-            AND (cast(isp.begin_time as time)<='11pm' AND isp.[duration]>30))
-
-        Left Join TimeCards2022 tc
-            ON (atn.date=tc.InPunchDay)
-            AND tc.Department='SA3'
-
-    WHERE
-        atn.individual like 'LANI%'
-        AND isp.isp_program is NULL
-
-   Group By
-        atn.individual,
-        tc.InPunchTime,
-        tc.Firstname,
-        tc.Lastname,
-        tc.OutPunchTime,
-        tc.InPunchDay,
-        atn.attendance,
-        tc.OutPunchDay,
-        atn.Date
-    HAVING
-        cast(tc.InPunchTime as time)>='6pm'
-        AND atn.attendance like '%12%'
-
-
-
-
-
-    )
-
-    UNION
-    (Select
-        atn.individual as 'Name',
-        tc.OutPunchDay as 'Date',
-        concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, atn.Date) as 'Weekday',
-        '12:00 AM' as 'Shift Start',
-        tc.OutPunchTime as 'Shift End',
-        '3 Nairn' as 'Home',
-        'David' as 'Manager',
-        'New Castle County' as 'County'
-
-    FROM [attendance2022] atn
-
-        left Join isp
-            ON (atn.date=isp.date)
-            AND (isp.Individual=atn.individual)
-            AND ((cast(isp.begin_time as time)='12am' AND isp.[duration]>58))
-
-        Left Join TimeCards2022 tc
-            ON (atn.date=tc.InPunchDay)
-            AND tc.Department='SA3'
-
-    WHERE atn.individual like 'LANI%'
+WHERE 
+    atn.individual like 'HEAD%'
     AND isp.isp_program is NULL
 
-   Group By
-        atn.individual,
-        tc.InPunchTime,
-        tc.Firstname,
-        tc.Lastname,
-        tc.OutPunchTime,
-        tc.InPunchDay,
-        atn.attendance,
-        tc.OutPunchDay,
-        atn.Date
-    HAVING
-        cast(tc.InPunchTime as time)>='6pm'
-        AND atn.attendance like '%12%'
-
-
-
-
-
-
-    )
-
-
-    UNION
-    (Select
-        atn.individual as 'Name',
-        tc.InPunchDay as 'Date',
-        concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, atn.Date) as 'Weekday',
-        tc.InPunchTime as 'Shift Start',
-        tc.OutPunchTime as 'Shift End',
-        '3 Nairn' as 'Home',
-        'David' as 'Manager',
-        'New Castle County' as 'County'
-
-    FROM
-        [attendance2022] atn
-
-        left Join isp
-            ON (atn.date=isp.date)
-            AND (isp.Individual=atn.individual)
-            AND ((cast(isp.begin_time as time)>='07:00' AND isp.[duration]>120)
-            AND (cast(isp.begin_time as time)<='10:00' AND isp.[duration]>120))
-
-        Left Join TimeCards2022 tc
-            ON atn.date=tc.InPunchDay
-            AND tc.Department='SA3'
-
-    WHERE
-        atn.individual like 'GALL%'
-        AND isp.isp_program is NULL
-        -- IF THE INDIVIDUAL GOES TO DAY PROGRAM --
-        AND (datepart(weekday,atn.date)<2 OR datepart(weekday,atn.date)>6)
-
-   Group By
-        atn.individual,
-        tc.InPunchTime,
-        tc.Firstname,
-        tc.Lastname,
-        tc.OutPunchTime,
-        tc.InPunchDay,
-        atn.attendance,
-        tc.OutPunchDay,
-        atn.Date
-    HAVING
-        cast(tc.InPunchTime as time)>='07:00'
-        AND cast(tc.InPunchTime as time)<='10:00'
-        AND atn.attendance like '%12%'
-
-
-
-
-
-    )
-    UNION
-    (Select
-        atn.individual as 'Name',
-        tc.InPunchDay as 'Date',
-        concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, atn.Date) as 'Weekday',
-        tc.InPunchTime as 'Shift Start',
-        tc.OutPunchTime as 'Shift End',
-        '3 Nairn' as 'Home',
-        'David' as 'Manager',
-        'New Castle County' as 'County'
-
-
-    FROM [attendance2022] atn
-
-        left Join isp
-            ON (atn.date=isp.date)
-            AND (isp.Individual=atn.individual)
-            AND ((cast(isp.begin_time as time)>='14:00' AND isp.[duration]>120)
-            AND (cast(isp.begin_time as time)<='17:00' AND isp.[duration]>120))
-
-        Left Join TimeCards2022 tc
-            ON atn.date=tc.InPunchDay
-            AND tc.Department='SA3'
-
-    WHERE
-        atn.individual like 'GALL%'
-        AND isp.isp_program is NULL
-
-
-   Group By
-        atn.individual,
-        tc.InPunchTime,
-        tc.Firstname,
-        tc.Lastname,
-        tc.OutPunchTime,
-        tc.InPunchDay,
-        atn.attendance,
-        tc.OutPunchDay,
-        atn.Date
-    HAVING
-        cast(tc.InPunchTime as time)>='14:00'
-        AND cast(tc.InPunchTime as time)<='17:00'
-        AND tc.OutPunchTime>='20:00'
-        AND atn.attendance like '%12%'
-
-
-
-
-
-    )
-    UNION
-    (Select
-        atn.individual as 'Name',
-        tc.InPunchDay as 'Date',
-        concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, atn.Date) as 'Weekday',
-        tc.InPunchTime as 'Shift Start',
-        '11:59 PM' as 'Shift End',
-        '3 Nairn' as 'Home',
-        'David' as 'Manager',
-        'New Castle County' as 'County'
-
-    FROM [attendance2022] atn
-
-        left Join isp
-            ON (atn.date=isp.date)
-            AND (isp.Individual=atn.individual)
-            AND ((cast(isp.begin_time as time)>='6pm' AND isp.[duration]>30)
-            AND (cast(isp.begin_time as time)<='11pm' AND isp.[duration]>30))
-
-        Left Join TimeCards2022 tc
-            ON (atn.date=tc.InPunchDay)
-            AND tc.Department='SA3'
-
-    WHERE
-        atn.individual like 'GALL%'
-        AND isp.isp_program is NULL
-
-   Group By
-        atn.individual,
-        tc.InPunchTime,
-        tc.Firstname,
-        tc.Lastname,
-        tc.OutPunchTime,
-        tc.InPunchDay,
-        atn.attendance,
-        tc.OutPunchDay,
-        atn.Date
-    HAVING
-        cast(tc.InPunchTime as time)>='6pm'
-        AND atn.attendance like '%12%'
-
-
-
-
-
-    )
-    UNION
-    (Select
-        atn.individual as 'Name',
-        tc.OutPunchDay as 'Date',
-        concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, atn.Date) as 'Weekday',
-        '12:00 AM' as 'Shift Start',
-        tc.OutPunchTime as 'Shift End',
-        '3 Nairn' as 'Home',
-        'David' as 'Manager',
-        'New Castle County' as 'County'
-
-    FROM [attendance2022] atn
-
-        left Join isp
-            ON (atn.date=isp.date)
-            AND (isp.Individual=atn.individual)
-            AND ((cast(isp.begin_time as time)='12am' AND isp.[duration]>58))
-
-        Left Join TimeCards2022 tc
-            ON (atn.date=tc.InPunchDay)
-            AND tc.Department='SA3'
-
-    WHERE atn.individual like 'GALL%'
-    AND isp.isp_program is NULL
-
-   Group By
-        atn.individual,
-        tc.InPunchTime,
-        tc.Firstname,
-        tc.Lastname,
-        tc.OutPunchTime,
-        tc.InPunchDay,
-        atn.attendance,
-        tc.OutPunchDay,
-        atn.Date
-    HAVING
-        cast(tc.InPunchTime as time)>='6pm'
-        AND atn.attendance like '%12%'
-
-
-
-
-
-
-    )
-
-    UNION
-    (Select
-        atn.individual as 'Name',
-        tc.InPunchDay as 'Date',
-        concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, atn.Date) as 'Weekday',
-        tc.InPunchTime as 'Shift Start',
-        tc.OutPunchTime as 'Shift End',
-        '8 Nairn' as 'Home',
-        'David' as 'Manager',
-        'New Castle County' as 'County'
-
-    FROM
-        [attendance2022] atn
-
-        left Join isp
-            ON (atn.date=isp.date)
-            AND (isp.Individual=atn.individual)
-            AND ((cast(isp.begin_time as time)>='07:00' AND isp.[duration]>120)
-            AND (cast(isp.begin_time as time)<='10:00' AND isp.[duration]>120))
-
-        Left Join TimeCards2022 tc
-            ON atn.date=tc.InPunchDay
-            AND tc.Department='SA8'
-
-    WHERE
-        atn.individual like 'JARD%'
-        AND isp.isp_program is NULL
-        -- IF THE INDIVIDUAL GOES TO DAY PROGRAM --
-        AND (datepart(weekday,atn.date)<2 OR datepart(weekday,atn.date)>6)
-
-   Group By
-        atn.individual,
-        tc.InPunchTime,
-        tc.Firstname,
-        tc.Lastname,
-        tc.OutPunchTime,
-        tc.InPunchDay,
-        atn.attendance,
-        tc.OutPunchDay,
-        atn.Date
-    HAVING
-        cast(tc.InPunchTime as time)>='07:00'
-        AND cast(tc.InPunchTime as time)<='10:00'
-        AND atn.attendance like '%12%'
-
-
-
-
-
-    )
-    UNION
-    (Select
-        atn.individual as 'Name',
-        tc.InPunchDay as 'Date',
-        concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, atn.Date) as 'Weekday',
-        tc.InPunchTime as 'Shift Start',
-        tc.OutPunchTime as 'Shift End',
-        '8 Nairn' as 'Home',
-        'David' as 'Manager',
-        'New Castle County' as 'County'
-
-
-    FROM [attendance2022] atn
-
-        left Join isp
-            ON (atn.date=isp.date)
-            AND (isp.Individual=atn.individual)
-            AND ((cast(isp.begin_time as time)>='14:00' AND isp.[duration]>120)
-            AND (cast(isp.begin_time as time)<='17:00' AND isp.[duration]>120))
-
-        Left Join TimeCards2022 tc
-            ON atn.date=tc.InPunchDay
-            AND tc.Department='SA8'
-
-    WHERE
-        atn.individual like 'JARD%'
-        AND isp.isp_program is NULL
-
-
-   Group By
-        atn.individual,
-        tc.InPunchTime,
-        tc.Firstname,
-        tc.Lastname,
-        tc.OutPunchTime,
-        tc.InPunchDay,
-        atn.attendance,
-        tc.OutPunchDay,
-        atn.Date
-    HAVING
-        cast(tc.InPunchTime as time)>='14:00'
-        AND cast(tc.InPunchTime as time)<='17:00'
-        AND tc.OutPunchTime>='20:00'
-        AND atn.attendance like '%12%'
-
-
-
-
-
-    )
-    UNION
-    (Select
-        atn.individual as 'Name',
-        tc.InPunchDay as 'Date',
-        concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, atn.Date) as 'Weekday',
-        tc.InPunchTime as 'Shift Start',
-        '11:59 PM' as 'Shift End',
-        '8 Nairn' as 'Home',
-        'David' as 'Manager',
-        'New Castle County' as 'County'
-
-    FROM [attendance2022] atn
-
-        left Join isp
-            ON (atn.date=isp.date)
-            AND (isp.Individual=atn.individual)
-            AND ((cast(isp.begin_time as time)>='6pm' AND isp.[duration]>30)
-            AND (cast(isp.begin_time as time)<='11pm' AND isp.[duration]>30))
-
-        Left Join TimeCards2022 tc
-            ON (atn.date=tc.InPunchDay)
-            AND tc.Department='SA8'
-
-    WHERE
-        atn.individual like 'JARD%'
-        AND isp.isp_program is NULL
-
-   Group By
-        atn.individual,
-        tc.InPunchTime,
-        tc.Firstname,
-        tc.Lastname,
-        tc.OutPunchTime,
-        tc.InPunchDay,
-        atn.attendance,
-        tc.OutPunchDay,
-        atn.Date
-    HAVING
-        cast(tc.InPunchTime as time)>='6pm'
-        AND atn.attendance like '%12%'
-
-
-
-
-
-    )
-    UNION
-    (Select
-        atn.individual as 'Name',
-        tc.OutPunchDay as 'Date',
-        concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, atn.Date) as 'Weekday',
-        '12:00 AM' as 'Shift Start',
-        tc.OutPunchTime as 'Shift End',
-        '8 Nairn' as 'Home',
-        'David' as 'Manager',
-        'New Castle County' as 'County'
-
-    FROM [attendance2022] atn
-
-        left Join isp
-            ON (atn.date=isp.date)
-            AND (isp.Individual=atn.individual)
-            AND ((cast(isp.begin_time as time)='12am' AND isp.[duration]>58))
-
-        Left Join TimeCards2022 tc
-            ON (atn.date=tc.InPunchDay)
-            AND tc.Department='SA8'
-
-    WHERE atn.individual like 'JARD%'
-    AND isp.isp_program is NULL
-
-   Group By
-        atn.individual,
-        tc.InPunchTime,
-        tc.Firstname,
-        tc.Lastname,
-        tc.OutPunchTime,
-        tc.InPunchDay,
-        atn.attendance,
-        tc.OutPunchDay,
-        atn.Date
-    HAVING
-        cast(tc.InPunchTime as time)>='6pm'
-        AND atn.attendance like '%12%'
-
-
-
-
-
-
-    )
-
-    UNION
-    (Select
-        atn.individual as 'Name',
-        tc.InPunchDay as 'Date',
-        concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, atn.Date) as 'Weekday',
-        tc.InPunchTime as 'Shift Start',
-        tc.OutPunchTime as 'Shift End',
-                    'E104' AS 'Home',
-                    'Teena' as 'Manager',
-                    'Kent County' as 'County'
-
-        FROM [attendance2022] atn
-
-
-                left Join isp
-            ON (atn.date=isp.date)
-            AND (isp.Individual=atn.individual)
-            AND ((cast(isp.begin_time as time)>='07:00' AND isp.[duration]>120)
-            AND (cast(isp.begin_time as time)<='09:00' AND isp.[duration]>120))
-
-
-        Left Join TimeCards2022 tc
-            ON atn.date=tc.InPunchDay
-                AND tc.Department='W104'
-
-        WHERE atn.individual like 'SEWARD%'
-                AND isp.isp_program is NULL
-                 -- IF THE INDIVIDUAL GOES TO DAY PROGRAM --
-               -- AND (datepart(weekday,atn.date)<2 OR datepart(weekday,atn.date)>6)
-
-   Group By
-        atn.individual,
-        tc.InPunchTime,
-        tc.Firstname,
-        tc.Lastname,
-        tc.OutPunchTime,
-        tc.InPunchDay,
-        atn.attendance,
-        tc.OutPunchDay,
-        atn.Date
-    HAVING
-        datepart(hour, tc.InPunchTime)>=7
-        AND datepart(hour, tc.InPunchTime)<=10
-        AND atn.attendance like '%12%'
-
-
-
-
-
-
-    )
-    UNION
-    (SELECT
-        atn.individual as 'Name',
-        tc.InPunchDay as 'Date',
-        concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, atn.Date) as 'Weekday',
-        tc.InPunchTime as 'Shift Start',
-        tc.OutPunchTime as 'Shift End',
-                    'E104' AS 'Home',
-                    'Teena' as 'Manager',
-                    'Kent County' as 'County'
-
-        FROM [attendance2022] atn
-
-                 left Join isp
-        ON (atn.date=isp.date)
-        AND (isp.Individual=atn.individual)
-        AND ((cast(isp.begin_time as time)>='14:00' AND isp.[duration]>120)
-        AND (cast(isp.begin_time as time)<='17:00' AND isp.[duration]>120))
-
-        Left Join TimeCards2022 tc
-        ON atn.date=tc.InPunchDay
-                AND tc.Department='W104'
-
-        WHERE atn.individual like 'SEWARD%'
-                AND isp.isp_program is NULL
-
-   Group By
-        atn.individual,
-        tc.InPunchTime,
-        tc.Firstname,
-        tc.Lastname,
-        tc.OutPunchTime,
-        tc.InPunchDay,
-        atn.attendance,
-        tc.OutPunchDay,
-        atn.Date
-    HAVING
-        cast(tc.InPunchTime as time)>='14:00'
-        AND cast(tc.InPunchTime as time)<='17:00'
-        AND tc.OutPunchTime>='20:00'
-        AND atn.attendance like '%12%'
-
-
-
-
-
-
-    )
-    UNION
-    (Select
-        atn.individual as 'Name',
-        tc.InPunchDay as 'Date',
-        concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, atn.Date) as 'Weekday',
-        tc.InPunchTime as 'Shift Start',
-        '11:59 PM' as 'Shift End',
-                    'E104' AS 'Home',
-                    'Teena' as 'Manager',
-                    'Kent County' as 'County'
-
-        FROM [attendance2022] atn
-
-        left Join isp
-                ON (atn.date=isp.date)
-                AND (isp.Individual=atn.individual)
-                AND ((cast(isp.begin_time as time)>='6pm' AND isp.[duration]>30)
-                    AND (cast(isp.begin_time as time)<='11pm' AND isp.[duration]>30))
-
-        Left Join TimeCards2022 tc
-            ON (atn.date=tc.InPunchDay)
-                AND tc.Department='W104'
-
-        WHERE atn.individual like 'SEWARD%'
-               AND isp.isp_program is NULL
-
-   Group By
-        atn.individual,
-        tc.InPunchTime,
-        tc.Firstname,
-        tc.Lastname,
-        tc.OutPunchTime,
-        tc.InPunchDay,
-        atn.attendance,
-        tc.OutPunchDay,
-        atn.Date
-    HAVING
-        cast(tc.InPunchTime as time)>='6pm'
-        AND atn.attendance like '%12%'
-
-
-
-
-
-
-    )
-    UNION
-    (Select
-        atn.individual as 'Name',
-        tc.OutPunchDay as 'Date',
-        concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, atn.Date) as 'Weekday',
-        '12:00 AM' as 'Shift Start',
-        tc.OutPunchTime as 'Shift End',
-                    'E104' AS 'Home',
-                    'Teena' as 'Manager',
-                    'Kent County' as 'County'
-        FROM [attendance2022] atn
-
-              left Join isp
-        ON (atn.date=isp.date)
-        AND (isp.Individual=atn.individual)
-        AND ((cast(isp.begin_time as time)='12am' AND isp.[duration]>58))
-
-        Left Join TimeCards2022 tc
-        ON (atn.date=tc.InPunchDay)
-                AND tc.Department='W104'
-
-        WHERE atn.individual like 'SEWARD%'
-               AND isp.isp_program is NULL
-
-   Group By
-        atn.individual,
-        tc.InPunchTime,
-        tc.Firstname,
-        tc.Lastname,
-        tc.OutPunchTime,
-        tc.InPunchDay,
-        atn.attendance,
-        tc.OutPunchDay,
-        atn.Date
-
-    HAVING
-        cast(tc.InPunchTime as time)>='6pm'
-        AND atn.attendance like '%12%'
-
-
-
-
-
-
-    )
-
-    UNION
-    (SELECT
-        atn.individual as 'Name',
-        tc.InPunchDay as 'Date',
-        concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, atn.Date) as 'Weekday',
-        tc.InPunchTime as 'Shift Start',
-        tc.OutPunchTime as 'Shift End',
-                    'J101' as 'Home',
-                    'Paul' as 'Manager',
-                    'Kent County' as 'County'
-
-
-        From TOBOLA..[isp] isp
-                    Right Join TOBOLA..[attendance2022] atn
-                        On atn.date=isp.[date] AND atn.individual=isp.individual
-                    Right Join TimeCards2022 tc
-                        On (concat(datename(weekday, atn.Date), ', ',datename(MONTH, tc.InPunchDay),' ', datename(day, tc.InPunchDay),', ', datename(year, tc.InPunchDay)))
-        =
-        concat(datename(weekday, atn.date), ', ',datename(MONTH, atn.date),' ', datename(day, atn.date),', ', datename(year, atn.date))
-
-        Where (atn.Program_Site like '324%' or atn.Program_Site like '104%' or atn.Program_Site like '%101%' or atn.Program_Site like '%110%' or atn.Program_Site like 'west%')
-                    AND atn.attendance like '%12%' AND isp.date is null
-                    AND atn.individual like 'levan%'
-                    AND tc.Department='J101'AND (tc.EarnCode='R' OR tc.EarnCode is null)
-
-
-    Group By
-        atn.individual,
-        isp.[date],
-        atn.date,
-        atn.attendance,
-        tc.Firstname,
-        tc.Lastname,
-        tc.InPunchTime,
-        tc.OutPunchTime,
-        TC.InPunchDay
-
-
-    )
-
-    UNION
-    (Select
-        atn.individual as 'Name',
-        tc.InPunchDay as 'Date',
-        concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, atn.Date) as 'Weekday',
-        tc.InPunchTime as 'Shift Start',
-        tc.OutPunchTime as 'Shift End',
-        'K110' as 'Home',
-        'Paul' as 'Manager',
-        'Kent County' as 'County'
-
-    FROM [Attendance2022] atn
-
-        left Join isp
-            ON (atn.date=isp.date)
-            AND (isp.Individual=atn.individual)
-            AND ((cast(isp.begin_time as time)>='07:00' AND isp.[duration]>120)
-            AND (cast(isp.begin_time as time)<='09:00' AND isp.[duration]>120))
-
-
-        Left Join TimeCards2022 tc
-            ON atn.date=tc.InPunchDay
-            AND tc.Department='k110'
-
-    WHERE
-        atn.individual like 'gree%'
-        AND isp.isp_program is NULL
-        -- IF THE INDIVIDUAL GOES TO DAY PROGRAM --
-        -- AND (datepart(weekday,atn.date)<2 OR datepart(weekday,atn.date)>6)
-
-   Group By
-        atn.individual,
-        tc.InPunchTime,
-        tc.Firstname,
-        tc.Lastname,
-        tc.OutPunchTime,
-        tc.InPunchDay,
-        atn.attendance,
-        tc.OutPunchDay,
-        atn.Date
-    HAVING
-        datepart(hour, tc.InPunchTime)>=7
-        AND datepart(hour, tc.InPunchTime)<=10
-        AND atn.attendance like '%12%'
-
-
-
-
-
-    )
-    UNION
-    (Select
-        atn.individual as 'Name',
-        tc.InPunchDay as 'Date',
-        concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, atn.Date) as 'Weekday',
-        tc.InPunchTime as 'Shift Start',
-        tc.OutPunchTime as 'Shift End',
-        'K110' as 'Home',
-        'Paul' as 'Manager',
-        'Kent County' as 'County'
-
-
-    FROM [Attendance2022] atn
-
-        left Join isp
-        ON (atn.date=isp.date)
-        AND (isp.Individual=atn.individual)
-        AND ((cast(isp.begin_time as time)>='14:00' AND isp.[duration]>120)
-        AND (cast(isp.begin_time as time)<='17:00' AND isp.[duration]>120))
-
-        Left Join TimeCards2022 tc
-        ON atn.date=tc.InPunchDay
-        AND tc.Department='k110'
-
-    WHERE
-        atn.individual like 'gree%'
-        AND isp.isp_program is NULL
-
-
-   Group By
-        atn.individual,
-        tc.InPunchTime,
-        tc.Firstname,
-        tc.Lastname,
-        tc.OutPunchTime,
-        tc.InPunchDay,
-        atn.attendance,
-        tc.OutPunchDay,
-        atn.Date
-    HAVING
-        cast(tc.InPunchTime as time)>='14:00'
-        AND cast(tc.InPunchTime as time)<='17:00'
-        AND tc.OutPunchTime>='20:00'
-        AND atn.attendance like '%12%'
-
-
-
-    )
-    UNION
-    (Select
-        atn.individual as 'Name',
-        tc.InPunchDay as 'Date',
-        concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, atn.Date) as 'Weekday',
-        tc.InPunchTime as 'Shift Start',
-        '11:59 PM' as 'Shift End',
-        'K110' as 'Home',
-        'Paul' as 'Manager',
-        'Kent County' as 'County'
-
-    FROM [Attendance2022] atn
-
-        left Join isp
-        ON (atn.date=isp.date)
-        AND (isp.Individual=atn.individual)
-        AND ((cast(isp.begin_time as time)>='6pm' AND isp.[duration]>30)
-        AND (cast(isp.begin_time as time)<='11pm' AND isp.[duration]>30))
-
-        Left Join TimeCards2022 tc
-        ON (atn.date=tc.InPunchDay)
-        AND tc.Department='k110'
-
-    WHERE
-        atn.individual like 'gree%'
-        AND isp.isp_program is NULL
-
-    Group By
+Group By atn.date, tc.EarnHours,
+ 
     atn.individual,
-        tc.InPunchTime,
-        tc.Firstname,
-        tc.Lastname,
-        tc.OutPunchTime,
-        tc.InPunchDay,
-        atn.attendance,
-        atn.date
+    tc.InPunchTime,
+    tc.Firstname,
+    tc.Lastname,
+    tc.OutPunchTime, 
+    tc.InPunchDay,
+    atn.attendance,
+    tc.OutPunchDay
 
-    HAVING
-        cast(tc.InPunchTime as time)>='6pm'
-        AND atn.attendance like '%12%'
-
-
+HAVING cast(tc.InPunchTime as time)>='6pm'
+      AND atn.attendance like '%12%'
+    AND tc.EarnHours > 3
+      
 
     )
+
     UNION
-    (Select
-        atn.individual as 'Name',
-        tc.OutPunchDay as 'Date',
-        concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, atn.Date) as 'Weekday',
-        '12:00 AM' as 'Shift Start',
-        tc.OutPunchTime as 'Shift End',
-        'K110' as 'Home',
-        'Paul' as 'Manager',
-        'Kent County' as 'County'
+    (Select 
+    atn.individual as 'Name',
+    tc.OutPunchDay as 'Date',
+    concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
+    datename(weekday, atn.date) as 'Weekday', 
+    '12:00 AM' as 'Shift Start', 
+    tc.OutPunchTime as 'Shift End',
+    'Castlebrook' as 'Home',
+    'Paul' as 'Manager', 
+    'New Castle County' as 'County'
 
-    FROM [Attendance2022] atn
+FROM 
+    [Attendance2022] atn
 
-        left Join isp
-        ON (atn.date=isp.date)
-        AND (isp.Individual=atn.individual)
-        AND ((cast(isp.begin_time as time)='12am' AND isp.[duration]>58))
-
+        Left Join isp
+            ON (atn.date=isp.date)
+            AND (isp.Individual=atn.individual)
+            AND ((cast(isp.begin_time as time)='12:00 AM' AND isp.[duration]>=30))
+        
         Left Join TimeCards2022 tc
-        ON (atn.date=tc.InPunchDay)
-        AND tc.Department='k110'
+            ON (atn.date=tc.OutPunchDay)
+            AND tc.Department='13B Castlebrook'
 
-    WHERE
-        atn.individual like 'gree%'
+WHERE 
+    atn.individual like 'HEAD%'
+    AND isp.isp_program is NULL
+
+Group By atn.date, tc.EarnHours,
+ 
+    atn.individual,
+    tc.InPunchTime,
+    tc.Firstname,
+    tc.Lastname,
+    tc.OutPunchTime, 
+    tc.InPunchDay,
+    atn.attendance,
+    tc.OutPunchDay
+
+HAVING cast(tc.InPunchTime as time)>='6pm'
+      AND atn.attendance like '%12%'
+    AND tc.EarnHours > 3      
+
+)
+
+-- TRAVIS FAUST --
+UNION
+(Select 
+    atn.individual as 'Name',
+    atn.Date as 'Date',
+    concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
+    datename(weekday, atn.date) as 'Weekday', 
+    tc.InPunchTime as 'Shift Start', 
+    tc.OutPunchTime as 'Shift End',
+    'Castlebrook' as 'Home',
+    'Paul' as 'Manager', 
+    'New Castle County' as 'County'
+
+From 
+    Attendance2022 atn
+
+    LEFT JOIN isp
+        ON atn.date=isp.date 
+        AND isp.Individual=atn.individual
+        AND ((cast(isp.begin_time as time)>='14:00' AND isp.[duration]>120)
+                AND (cast(isp.begin_time as time)<='17:00' AND isp.[duration]>120))
+
+    Left Join TimeCards2022 tc 
+        ON atn.date=tc.InPunchDay
+        AND tc.Department='13B Castlebrook'
+
+    WHERE 
+        atn.individual like 'FAUST%'
         AND isp.isp_program is NULL
+    
 
+Group By atn.date, tc.EarnHours,
+ 
+    atn.individual,
+    tc.InPunchTime,
+    tc.Firstname,
+    tc.Lastname,
+    tc.OutPunchTime, 
+    tc.InPunchDay,
+    atn.attendance,
+    tc.OutPunchDay
 
-   Group By
-        atn.individual,
-        tc.InPunchTime,
-        tc.Firstname,
-        tc.Lastname,
-        tc.OutPunchTime,
-        tc.InPunchDay,
-        atn.attendance,
-        tc.OutPunchDay,
-        atn.Date
+HAVING 
+    tc.InPunchTime>='14:00'
+    AND tc.InPunchTime<='17:00'
+      AND atn.attendance like '%12%'
+    AND tc.EarnHours > 3
+      
 
-    HAVING
-        cast(tc.InPunchTime as time)>='6pm'
-        AND atn.attendance like '%12%'
+)
 
+UNION
+(Select 
+    atn.individual as 'Name',
+    atn.Date as 'Date',
+    concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
+    datename(weekday, atn.date) as 'Weekday', 
+    tc.InPunchTime as 'Shift Start', 
+    '11:59 PM' as 'Shift End',
+    'Castlebrook' as 'Home',
+    'Paul' as 'Manager', 
+    'New Castle County' as 'County'
 
+FROM 
+    [Attendance2022] atn
 
-
-
-    )
-
-    UNION
-    (Select
-        atn.individual as 'Name',
-        tc.InPunchDay as 'Date',
-        concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, atn.Date) as 'Weekday',
-        tc.InPunchTime as 'Shift Start',
-        tc.OutPunchTime as 'Shift End',
-                    'E103' as 'Home',
-                    'Teena' as 'Manager',
-                    'Kent County' as 'County'
-        FROM [Attendance2022] atn
-
-                left Join isp
+        Left Join isp
             ON (atn.date=isp.date)
             AND (isp.Individual=atn.individual)
-            AND ((cast(isp.begin_time as time)>='07:00' AND isp.[duration]>120)
-            AND (cast(isp.begin_time as time)<='09:00' AND isp.[duration]>120))
+            AND ((cast(isp.begin_time as time)>='6pm' AND isp.[duration]>=30)
+                AND (cast(isp.begin_time as time)<='11pm' AND isp.[duration]>=30))
+        
+        Left Join   TimeCards2022 tc
+            ON (atn.date=tc.InPunchDay)
+            AND tc.Department='13B Castlebrook'
 
+WHERE 
+    atn.individual like 'FAUST%'
+    AND isp.isp_program is NULL
 
-        Left Join TimeCards2022 tc
-            ON atn.date=tc.InPunchDay
-                AND tc.Department='W103'
+Group By atn.date, tc.EarnHours,
+ 
+    atn.individual,
+    tc.InPunchTime,
+    tc.Firstname,
+    tc.Lastname,
+    tc.OutPunchTime, 
+    tc.InPunchDay,
+    atn.attendance,
+    tc.OutPunchDay
 
-        WHERE atn.individual like 'JAMES%'
-                AND isp.isp_program is NULL
-                 -- IF THE INDIVIDUAL GOES TO DAY PROGRAM --
-                AND (datepart(weekday,atn.date)<2 OR datepart(weekday,atn.date)>6)
-   Group By
-        atn.individual,
-        tc.InPunchTime,
-        tc.Firstname,
-        tc.Lastname,
-        tc.OutPunchTime,
-        tc.InPunchDay,
-        atn.attendance,
-        tc.OutPunchDay,
-        atn.Date
-    HAVING
-        datepart(hour, tc.InPunchTime)>=7
-        AND datepart(hour, tc.InPunchTime)<=10
-        AND atn.attendance like '%12%'
-
-
-
-
-
-
+HAVING cast(tc.InPunchTime as time)>='6pm'
+      AND atn.attendance like '%12%'
+    AND tc.EarnHours > 3
+  
 
     )
+
     UNION
-    (Select
-        atn.individual as 'Name',
-        tc.InPunchDay as 'Date',
-        concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, atn.Date) as 'Weekday',
-        tc.InPunchTime as 'Shift Start',
-        tc.OutPunchTime as 'Shift End',
-                    'E103' as 'Home',
-                    'Teena' as 'Manager',
-                    'Kent County' as 'County'
+    (Select 
+    atn.individual as 'Name',
+    tc.OutPunchDay as 'Date',
+    concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
+    datename(weekday, atn.date) as 'Weekday', 
+    '12:00 AM' as 'Shift Start', 
+    tc.OutPunchTime as 'Shift End',
+    'Castlebrook' as 'Home',
+    'Paul' as 'Manager', 
+    'New Castle County' as 'County'
+
+FROM 
+    [Attendance2022] atn
+
+        Left Join isp
+            ON (atn.date=isp.date)
+            AND (isp.Individual=atn.individual)
+            AND ((cast(isp.begin_time as time)='12:00 AM' AND isp.[duration]>=30))
+        
+        Left Join TimeCards2022 tc
+            ON (atn.date=tc.OutPunchDay)
+            AND tc.Department='13B Castlebrook'
+
+WHERE 
+    atn.individual like 'FAUST%'
+    AND isp.isp_program is NULL
+
+Group By atn.date, tc.EarnHours,
+ 
+    atn.individual,
+    tc.InPunchTime,
+    tc.Firstname,
+    tc.Lastname,
+    tc.OutPunchTime, 
+    tc.InPunchDay,
+    atn.attendance,
+    tc.OutPunchDay
+
+HAVING cast(tc.InPunchTime as time)>='6pm'
+      AND atn.attendance like '%12%'
+    AND tc.EarnHours > 3
+      
 
 
-        FROM [Attendance2022] atn
+)
 
-            left Join isp
+-- CHRISTIAN GARRISON --
+UNION
+(Select 
+    atn.individual as 'Name',
+    atn.Date as 'Date',
+    concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
+    datename(weekday, atn.date) as 'Weekday', 
+    tc.InPunchTime as 'Shift Start', 
+    tc.OutPunchTime as 'Shift End',
+    '3 Nairn' as 'Home', 
+    'David' as 'Manager',
+    'New Castle County' as 'County'
+
+FROM 
+    [attendance2022] atn
+
+    left Join isp
+        ON (atn.date=isp.date)
+        AND (isp.Individual=atn.individual)
+        AND ((cast(isp.begin_time as time)>='07:00' AND isp.[duration]>120)
+        AND (cast(isp.begin_time as time)<='10:00' AND isp.[duration]>120))
+
+    Left Join TimeCards2022 tc 
+        ON atn.date=tc.InPunchDay
+        AND tc.Department='SA3'
+
+WHERE 
+    atn.individual like 'GARR%'
+    AND isp.isp_program is NULL
+    -- IF THE INDIVIDUAL GOES TO DAY PROGRAM --
+    AND (datepart(weekday,atn.date)<2 OR datepart(weekday,atn.date)>6) 
+
+Group By atn.date, tc.EarnHours,
+ 
+    atn.individual,
+    tc.InPunchTime,
+    tc.Firstname,
+    tc.Lastname,
+    tc.OutPunchTime, 
+    tc.InPunchDay,
+    atn.attendance,
+    tc.OutPunchDay
+
+HAVING 
+    cast(tc.InPunchTime as time)>='07:00'
+    AND cast(tc.InPunchTime as time)<='10:00'
+      AND atn.attendance like '%12%'
+    AND tc.EarnHours > 3
+  
+
+
+
+
+
+
+)
+UNION
+(Select 
+    atn.individual as 'Name',
+    atn.Date as 'Date',
+    concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
+    datename(weekday, atn.date) as 'Weekday', 
+    tc.InPunchTime as 'Shift Start', 
+    tc.OutPunchTime as 'Shift End',
+    '3 Nairn' as 'Home', 
+    'David' as 'Manager',
+    'New Castle County' as 'County'
+
+
+FROM [attendance2022] atn
+
+    left Join isp
         ON (atn.date=isp.date)
         AND (isp.Individual=atn.individual)
         AND ((cast(isp.begin_time as time)>='14:00' AND isp.[duration]>120)
         AND (cast(isp.begin_time as time)<='17:00' AND isp.[duration]>120))
 
-        Left Join TimeCards2022 tc
+    Left Join TimeCards2022 tc 
         ON atn.date=tc.InPunchDay
-                AND tc.Department='W103'
+        AND tc.Department='SA3'
 
-        WHERE atn.individual like 'JAMES%'
-               AND isp.isp_program is NULL
-
-
-   Group By
-        atn.individual,
-        tc.InPunchTime,
-        tc.Firstname,
-        tc.Lastname,
-        tc.OutPunchTime,
-        tc.InPunchDay,
-        atn.attendance,
-        tc.OutPunchDay,
-        atn.Date
-    HAVING
-        cast(tc.InPunchTime as time)>='14:00'
-        AND cast(tc.InPunchTime as time)<='17:00'
-        AND tc.OutPunchTime>='20:00'
-        AND atn.attendance like '%12%'
+WHERE 
+    atn.individual like 'GARR%'
+    AND isp.isp_program is NULL
 
 
+Group By atn.date, tc.EarnHours,
+ 
+    atn.individual,
+    tc.InPunchTime,
+    tc.Firstname,
+    tc.Lastname,
+    tc.OutPunchTime, 
+    tc.InPunchDay,
+    atn.attendance,
+    tc.OutPunchDay
 
-
-
-    )
-    UNION
-    (Select
-        atn.individual as 'Name',
-        tc.InPunchDay as 'Date',
-        concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, atn.Date) as 'Weekday',
-        tc.InPunchTime as 'Shift Start',
-        '11:59 PM' as 'Shift End',
-                    'E103' as 'Home',
-                    'Teena' as 'Manager',
-                    'Kent County' as 'County'
-
-        FROM [attendance2022] atn
-
-             left Join isp
-                ON (atn.date=isp.date)
-                AND (isp.Individual=atn.individual)
-                AND ((cast(isp.begin_time as time)>='6pm' AND isp.[duration]>30)
-                    AND (cast(isp.begin_time as time)<='11pm' AND isp.[duration]>30))
-
-        Left Join TimeCards2022 tc
-            ON (atn.date=tc.InPunchDay)
-                AND tc.Department='W103'
-
-        WHERE atn.individual like 'JAMES%'
-                AND isp.isp_program is NULL
-
-   Group By
-        atn.individual,
-        tc.InPunchTime,
-        tc.Firstname,
-        tc.Lastname,
-        tc.OutPunchTime,
-        tc.InPunchDay,
-        atn.attendance,
-        tc.OutPunchDay,
-        atn.Date
-    HAVING
-        cast(tc.InPunchTime as time)>='6pm'
-        AND atn.attendance like '%12%'
+HAVING 
+    cast(tc.InPunchTime as time)>='14:00'
+    AND cast(tc.InPunchTime as time)<='17:00'
+      AND atn.attendance like '%12%'
+    AND tc.EarnHours > 3
+  
 
 
 
 
 
-    )
-    UNION
-    (Select
-        atn.individual as 'Name',
-        tc.OutPunchDay as 'Date',
-        concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, atn.Date) as 'Weekday',
-        '12:00 AM' as 'Shift Start',
-        tc.OutPunchTime as 'Shift End',
-                    'E103' as 'Home',
-                    'Teena' as 'Manager',
-                    'Kent County' as 'County'
 
-        FROM [attendance2022] atn
+)
+UNION
+(Select 
+    atn.individual as 'Name',
+    atn.Date as 'Date',
+    concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
+    datename(weekday, atn.date) as 'Weekday', 
+    tc.InPunchTime as 'Shift Start', 
+    '11:59 PM' as 'Shift End',
+    '3 Nairn' as 'Home',
+    'David' as 'Manager',
+    'New Castle County' as 'County'
 
-               left Join isp
+FROM [attendance2022] atn
+
+    left Join isp
         ON (atn.date=isp.date)
         AND (isp.Individual=atn.individual)
-        AND ((cast(isp.begin_time as time)='12am' AND isp.[duration]>58))
+        AND ((cast(isp.begin_time as time)>='6pm' AND isp.[duration]>=30)
+        AND (cast(isp.begin_time as time)<='11pm' AND isp.[duration]>=30))
 
-        Left Join TimeCards2022 tc
+    Left Join TimeCards2022 tc
         ON (atn.date=tc.InPunchDay)
-                AND tc.Department='W103'
+        AND tc.Department='SA3'
 
-        WHERE atn.individual like 'JAMES%'
-               AND isp.isp_program is NULL
+WHERE 
+    atn.individual like 'GARR%'
+    AND isp.isp_program is NULL
 
+Group By atn.date, tc.EarnHours,
+ 
+    atn.individual,
+    tc.InPunchTime,
+    tc.Firstname,
+    tc.Lastname,
+    tc.OutPunchTime, 
+    tc.InPunchDay,
+    atn.attendance,
+    tc.OutPunchDay
 
-   Group By
-        atn.individual,
-        tc.InPunchTime,
-        tc.Firstname,
-        tc.Lastname,
-        tc.OutPunchTime,
-        tc.InPunchDay,
-        atn.attendance,
-        tc.OutPunchDay,
-        atn.Date
-
-    HAVING
-        cast(tc.InPunchTime as time)>='6pm'
-        AND atn.attendance like '%12%'
-
-
-
-
+HAVING 
+    cast(tc.InPunchTime as time)>='6pm'
+      AND atn.attendance like '%12%'
+    AND tc.EarnHours > 3
+  
 
 
 
-    )
 
 
-    UNION
-    (Select
-        atn.individual as 'Name',
-        tc.InPunchDay as 'Date',
-        concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, atn.Date) as 'Weekday',
-        tc.InPunchTime as 'Shift Start',
-        tc.OutPunchTime as 'Shift End',
-                    'E103' as 'Home',
-                    'Teena' as 'Manager',
-                    'Kent County' as 'County'
-        FROM [Attendance2022] atn
+)
+UNION
+(Select 
+    atn.individual as 'Name',
+    tc.OutPunchDay as 'Date',
+    concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
+    datename(weekday, atn.date) as 'Weekday', 
+    '12:00 AM' as 'Shift Start', 
+    tc.OutPunchTime as 'Shift End',
+    '3 Nairn' as 'Home', 
+    'David' as 'Manager',
+    'New Castle County' as 'County'
 
-                left Join isp
-            ON (atn.date=isp.date)
-            AND (isp.Individual=atn.individual)
-            AND ((cast(isp.begin_time as time)>='07:00' AND isp.[duration]>120)
-            AND (cast(isp.begin_time as time)<='09:00' AND isp.[duration]>120))
+FROM [attendance2022] atn
 
+    left Join isp
+        ON (atn.date=isp.date)
+        AND (isp.Individual=atn.individual)
+        AND ((cast(isp.begin_time as time)='12am' AND isp.[duration]>=30))
 
-        Left Join TimeCards2022 tc
-            ON atn.date=tc.InPunchDay
-                AND tc.Department='W103'
+    Left Join TimeCards2022 tc
+        ON (atn.date=tc.OutPunchDay)
+        AND tc.Department='SA3'
 
-        WHERE atn.individual like 'CHIT%'
-                AND isp.isp_program is NULL
-                 -- IF THE INDIVIDUAL GOES TO DAY PROGRAM --
-                AND (datepart(weekday,atn.date)<2 OR datepart(weekday,atn.date)>6)
-   Group By
-        atn.individual,
-        tc.InPunchTime,
-        tc.Firstname,
-        tc.Lastname,
-        tc.OutPunchTime,
-        tc.InPunchDay,
-        atn.attendance,
-        tc.OutPunchDay,
-        atn.Date
-    HAVING
-        datepart(hour, tc.InPunchTime)>=7
-        AND datepart(hour, tc.InPunchTime)<=10
-        AND atn.attendance like '%12%'
+WHERE atn.individual like 'GARR%'
+    AND isp.isp_program is NULL
+
+Group By atn.date, tc.EarnHours,
+ 
+    atn.individual,
+    tc.InPunchTime,
+    tc.Firstname,
+    tc.Lastname,
+    tc.OutPunchTime, 
+    tc.InPunchDay,
+    atn.attendance,
+    tc.OutPunchDay
+
+HAVING 
+    cast(tc.InPunchTime as time)>='6pm'
+      AND atn.attendance like '%12%'
+    AND tc.EarnHours > 3
+  
 
 
 
 
 
 
+)
 
-    )
-    UNION
-    (Select
-        atn.individual as 'Name',
-        tc.InPunchDay as 'Date',
-        concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, atn.Date) as 'Weekday',
-        tc.InPunchTime as 'Shift Start',
-        tc.OutPunchTime as 'Shift End',
-                    'E103' as 'Home',
-                    'Teena' as 'Manager',
-                    'Kent County' as 'County'
+-- DANIEL LANIER -- 
+
+UNION
+(Select 
+    atn.individual as 'Name',
+    atn.Date as 'Date',
+    concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
+    datename(weekday, atn.date) as 'Weekday', 
+    tc.InPunchTime as 'Shift Start', 
+    tc.OutPunchTime as 'Shift End',
+    '3 Nairn' as 'Home', 
+    'David' as 'Manager',
+    'New Castle County' as 'County'
+
+FROM 
+    [attendance2022] atn
+
+    left Join isp
+        ON (atn.date=isp.date)
+        AND (isp.Individual=atn.individual)
+        AND ((cast(isp.begin_time as time)>='07:00' AND isp.[duration]>120)
+        AND (cast(isp.begin_time as time)<='10:00' AND isp.[duration]>120))
+
+    Left Join TimeCards2022 tc 
+        ON atn.date=tc.InPunchDay
+        AND tc.Department='SA3'
+
+WHERE 
+    atn.individual like 'LANI%'
+    AND isp.isp_program is NULL
+    -- IF THE INDIVIDUAL GOES TO DAY PROGRAM --
+    AND (datepart(weekday,atn.date)<2 OR datepart(weekday,atn.date)>6) 
+
+Group By atn.date, tc.EarnHours,
+ 
+    atn.individual,
+    tc.InPunchTime,
+    tc.Firstname,
+    tc.Lastname,
+    tc.OutPunchTime, 
+    tc.InPunchDay,
+    atn.attendance,
+    tc.OutPunchDay
+
+HAVING 
+    cast(tc.InPunchTime as time)>='07:00'
+    AND cast(tc.InPunchTime as time)<='10:00'
+      AND atn.attendance like '%12%'
+    AND tc.EarnHours > 3
+  
 
 
-        FROM [Attendance2022] atn
 
-            left Join isp
+
+
+)
+UNION
+(Select 
+    atn.individual as 'Name',
+    atn.Date as 'Date',
+    concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
+    datename(weekday, atn.date) as 'Weekday', 
+    tc.InPunchTime as 'Shift Start', 
+    tc.OutPunchTime as 'Shift End',
+    '3 Nairn' as 'Home', 
+    'David' as 'Manager',
+    'New Castle County' as 'County'
+
+
+FROM [attendance2022] atn
+
+    left Join isp
         ON (atn.date=isp.date)
         AND (isp.Individual=atn.individual)
         AND ((cast(isp.begin_time as time)>='14:00' AND isp.[duration]>120)
         AND (cast(isp.begin_time as time)<='17:00' AND isp.[duration]>120))
 
-        Left Join TimeCards2022 tc
+    Left Join TimeCards2022 tc 
         ON atn.date=tc.InPunchDay
-                AND tc.Department='W103'
+        AND tc.Department='SA3'
 
-        WHERE atn.individual like 'CHIT%'
-               AND isp.isp_program is NULL
-
-
-   Group By
-        atn.individual,
-        tc.InPunchTime,
-        tc.Firstname,
-        tc.Lastname,
-        tc.OutPunchTime,
-        tc.InPunchDay,
-        atn.attendance,
-        tc.OutPunchDay,
-        atn.Date
-    HAVING
-        cast(tc.InPunchTime as time)>='14:00'
-        AND cast(tc.InPunchTime as time)<='17:00'
-        AND tc.OutPunchTime>='20:00'
-        AND atn.attendance like '%12%'
+WHERE 
+    atn.individual like 'LANI%'
+    AND isp.isp_program is NULL
 
 
+Group By atn.date, tc.EarnHours,
+ 
+    atn.individual,
+    tc.InPunchTime,
+    tc.Firstname,
+    tc.Lastname,
+    tc.OutPunchTime, 
+    tc.InPunchDay,
+    atn.attendance,
+    tc.OutPunchDay
 
-
-
-    )
-    UNION
-    (Select
-        atn.individual as 'Name',
-        tc.InPunchDay as 'Date',
-        concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, atn.Date) as 'Weekday',
-        tc.InPunchTime as 'Shift Start',
-        '11:59 PM' as 'Shift End',
-                    'E103' as 'Home',
-                    'Teena' as 'Manager',
-                    'Kent County' as 'County'
-
-        FROM [attendance2022] atn
-
-             left Join isp
-                ON (atn.date=isp.date)
-                AND (isp.Individual=atn.individual)
-                AND ((cast(isp.begin_time as time)>='6pm' AND isp.[duration]>30)
-                    AND (cast(isp.begin_time as time)<='11pm' AND isp.[duration]>30))
-
-        Left Join TimeCards2022 tc
-            ON (atn.date=tc.InPunchDay)
-                AND tc.Department='W103'
-
-        WHERE atn.individual like 'CHIT%'
-                AND isp.isp_program is NULL
-
-   Group By
-        atn.individual,
-        tc.InPunchTime,
-        tc.Firstname,
-        tc.Lastname,
-        tc.OutPunchTime,
-        tc.InPunchDay,
-        atn.attendance,
-        tc.OutPunchDay,
-        atn.Date
-    HAVING
-        cast(tc.InPunchTime as time)>='6pm'
-        AND atn.attendance like '%12%'
+HAVING 
+    cast(tc.InPunchTime as time)>='14:00'
+    AND cast(tc.InPunchTime as time)<='17:00'
+      AND atn.attendance like '%12%'
+    AND tc.EarnHours > 3
+  
 
 
 
 
 
-    )
-    UNION
-    (Select
-        atn.individual as 'Name',
-        tc.OutPunchDay as 'Date',
-        concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, atn.Date) as 'Weekday',
-        '12:00 AM' as 'Shift Start',
-        tc.OutPunchTime as 'Shift End',
-                    'E103' as 'Home',
-                    'Teena' as 'Manager',
-                    'Kent County' as 'County'
+)
+UNION
+(Select 
+    atn.individual as 'Name',
+    atn.Date as 'Date',
+    concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
+    datename(weekday, atn.date) as 'Weekday', 
+    tc.InPunchTime as 'Shift Start', 
+    '11:59 PM' as 'Shift End',
+    '3 Nairn' as 'Home',
+    'David' as 'Manager',
+    'New Castle County' as 'County'
 
-        FROM [attendance2022] atn
+FROM [attendance2022] atn
 
-               left Join isp
+    left Join isp
         ON (atn.date=isp.date)
         AND (isp.Individual=atn.individual)
-        AND ((cast(isp.begin_time as time)='12am' AND isp.[duration]>58))
+        AND ((cast(isp.begin_time as time)>='6pm' AND isp.[duration]>=30)
+        AND (cast(isp.begin_time as time)<='11pm' AND isp.[duration]>=30))
 
-        Left Join TimeCards2022 tc
+    Left Join TimeCards2022 tc
         ON (atn.date=tc.InPunchDay)
-                AND tc.Department='W103'
+        AND tc.Department='SA3'
 
-        WHERE atn.individual like 'CHIT%'
-               AND isp.isp_program is NULL
+WHERE 
+    atn.individual like 'LANI%'
+    AND isp.isp_program is NULL
 
+Group By atn.date, tc.EarnHours,
+ 
+    atn.individual,
+    tc.InPunchTime,
+    tc.Firstname,
+    tc.Lastname,
+    tc.OutPunchTime, 
+    tc.InPunchDay,
+    atn.attendance,
+    tc.OutPunchDay
 
-   Group By
-        atn.individual,
-        tc.InPunchTime,
-        tc.Firstname,
-        tc.Lastname,
-        tc.OutPunchTime,
-        tc.InPunchDay,
-        atn.attendance,
-        tc.OutPunchDay,
-        atn.Date
-
-    HAVING
-        cast(tc.InPunchTime as time)>='6pm'
-        AND atn.attendance like '%12%'
-
-
-
-
+HAVING 
+    cast(tc.InPunchTime as time)>='6pm'
+      AND atn.attendance like '%12%'
+    AND tc.EarnHours > 3
+  
 
 
 
-    )
 
-    UNION
-    (Select
-        atn.individual as 'Name',
-        tc.InPunchDay as 'Date',
-        concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, atn.Date) as 'Weekday',
-        tc.InPunchTime as 'Shift Start',
-        tc.OutPunchTime as 'Shift End',
-        'E103' as 'Home',
-        'Teena' as 'Manager',
-        'Kent County' as 'County'
+
+)
+
+UNION
+(Select 
+    atn.individual as 'Name',
+    tc.OutPunchDay as 'Date',
+    concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
+    datename(weekday, atn.date) as 'Weekday', 
+    '12:00 AM' as 'Shift Start', 
+    tc.OutPunchTime as 'Shift End',
+    '3 Nairn' as 'Home', 
+    'David' as 'Manager',
+    'New Castle County' as 'County'
+
+FROM [attendance2022] atn
+
+    left Join isp
+        ON (atn.date=isp.date)
+        AND (isp.Individual=atn.individual)
+        AND ((cast(isp.begin_time as time)='12am' AND isp.[duration]>=30))
+
+    Left Join TimeCards2022 tc
+        ON (atn.date=tc.OutPunchDay)
+        AND tc.Department='SA3'
+
+WHERE atn.individual like 'LANI%'
+AND isp.isp_program is NULL
+
+Group By atn.date, tc.EarnHours,
+ 
+    atn.individual,
+    tc.InPunchTime,
+    tc.Firstname,
+    tc.Lastname,
+    tc.OutPunchTime, 
+    tc.InPunchDay,
+    atn.attendance,
+    tc.OutPunchDay
+
+HAVING 
+    cast(tc.InPunchTime as time)>='6pm'
+      AND atn.attendance like '%12%'
+    AND tc.EarnHours > 3
+  
+
+
+
+
+
+
+)
+
+-- JAMES GALLAGHER --
+UNION
+(Select 
+    atn.individual as 'Name',
+    atn.Date as 'Date',
+    concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
+    datename(weekday, atn.date) as 'Weekday', 
+    tc.InPunchTime as 'Shift Start', 
+    tc.OutPunchTime as 'Shift End',
+    '3 Nairn' as 'Home', 
+    'David' as 'Manager',
+    'New Castle County' as 'County'
+
+FROM 
+    [attendance2022] atn
+
+    left Join isp
+        ON (atn.date=isp.date)
+        AND (isp.Individual=atn.individual)
+        AND ((cast(isp.begin_time as time)>='07:00' AND isp.[duration]>120)
+        AND (cast(isp.begin_time as time)<='10:00' AND isp.[duration]>120))
+
+    Left Join TimeCards2022 tc 
+        ON atn.date=tc.InPunchDay
+        AND tc.Department='SA3'
+
+WHERE 
+    atn.individual like 'GALL%'
+    AND isp.isp_program is NULL
+    -- IF THE INDIVIDUAL GOES TO DAY PROGRAM --
+    AND (datepart(weekday,atn.date)<2 OR datepart(weekday,atn.date)>6) 
+
+Group By atn.date, tc.EarnHours,
+ 
+    atn.individual,
+    tc.InPunchTime,
+    tc.Firstname,
+    tc.Lastname,
+    tc.OutPunchTime, 
+    tc.InPunchDay,
+    atn.attendance,
+    tc.OutPunchDay
+
+HAVING 
+    cast(tc.InPunchTime as time)>='07:00'
+    AND cast(tc.InPunchTime as time)<='10:00'
+      AND atn.attendance like '%12%'
+    AND tc.EarnHours > 3
+  
+
+
+
+
+
+)
+UNION
+(Select 
+    atn.individual as 'Name',
+    atn.Date as 'Date',
+    concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
+    datename(weekday, atn.date) as 'Weekday', 
+    tc.InPunchTime as 'Shift Start', 
+    tc.OutPunchTime as 'Shift End',
+    '3 Nairn' as 'Home', 
+    'David' as 'Manager',
+    'New Castle County' as 'County'
+
+
+FROM [attendance2022] atn
+
+    left Join isp
+        ON (atn.date=isp.date)
+        AND (isp.Individual=atn.individual)
+        AND ((cast(isp.begin_time as time)>='14:00' AND isp.[duration]>120)
+        AND (cast(isp.begin_time as time)<='17:00' AND isp.[duration]>120))
+
+    Left Join TimeCards2022 tc 
+        ON atn.date=tc.InPunchDay
+        AND tc.Department='SA3'
+
+WHERE 
+    atn.individual like 'GALL%'
+    AND isp.isp_program is NULL
+
+
+Group By atn.date, tc.EarnHours,
+ 
+    atn.individual,
+    tc.InPunchTime,
+    tc.Firstname,
+    tc.Lastname,
+    tc.OutPunchTime, 
+    tc.InPunchDay,
+    atn.attendance,
+    tc.OutPunchDay
+
+HAVING 
+    cast(tc.InPunchTime as time)>='14:00'
+    AND cast(tc.InPunchTime as time)<='17:00'
+      AND atn.attendance like '%12%'
+    AND tc.EarnHours > 3
+  
+
+
+
+
+
+)
+UNION
+(Select 
+    atn.individual as 'Name',
+    atn.Date as 'Date',
+    concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
+    datename(weekday, atn.date) as 'Weekday', 
+    tc.InPunchTime as 'Shift Start', 
+    '11:59 PM' as 'Shift End',
+    '3 Nairn' as 'Home',
+    'David' as 'Manager',
+    'New Castle County' as 'County'
+
+FROM [attendance2022] atn
+
+    left Join isp
+        ON (atn.date=isp.date)
+        AND (isp.Individual=atn.individual)
+        AND ((cast(isp.begin_time as time)>='6pm' AND isp.[duration]>=30)
+        AND (cast(isp.begin_time as time)<='11pm' AND isp.[duration]>=30))
+
+    Left Join TimeCards2022 tc
+        ON (atn.date=tc.InPunchDay)
+        AND tc.Department='SA3'
+
+WHERE 
+    atn.individual like 'GALL%'
+    AND isp.isp_program is NULL
+
+Group By atn.date, tc.EarnHours,
+ 
+    atn.individual,
+    tc.InPunchTime,
+    tc.Firstname,
+    tc.Lastname,
+    tc.OutPunchTime, 
+    tc.InPunchDay,
+    atn.attendance,
+    tc.OutPunchDay
+
+HAVING 
+    cast(tc.InPunchTime as time)>='6pm'
+      AND atn.attendance like '%12%'
+    AND tc.EarnHours > 3
+  
+
+
+
+
+
+)
+UNION
+(Select 
+    atn.individual as 'Name',
+    tc.OutPunchDay as 'Date',
+    concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
+    datename(weekday, atn.date) as 'Weekday', 
+    '12:00 AM' as 'Shift Start', 
+    tc.OutPunchTime as 'Shift End',
+    '3 Nairn' as 'Home', 
+    'David' as 'Manager',
+    'New Castle County' as 'County'
+
+FROM [attendance2022] atn
+
+    left Join isp
+        ON (atn.date=isp.date)
+        AND (isp.Individual=atn.individual)
+        AND ((cast(isp.begin_time as time)='12am' AND isp.[duration]>=30))
+
+    Left Join TimeCards2022 tc
+        ON (atn.date=tc.OutPunchDay)
+        AND tc.Department='SA3'
+
+WHERE atn.individual like 'GALL%'
+AND isp.isp_program is NULL
+
+Group By atn.date, tc.EarnHours,
+ 
+    atn.individual,
+    tc.InPunchTime,
+    tc.Firstname,
+    tc.Lastname,
+    tc.OutPunchTime, 
+    tc.InPunchDay,
+    atn.attendance,
+    tc.OutPunchDay
+
+HAVING 
+    cast(tc.InPunchTime as time)>='6pm'
+      AND atn.attendance like '%12%'
+    AND tc.EarnHours > 3
+  
+
+
+
+
+
+)
+
+-- DULCE JARDON-ROSALES -- 
+UNION
+(Select 
+    atn.individual as 'Name',
+    atn.Date as 'Date',
+    concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
+    datename(weekday, atn.date) as 'Weekday', 
+    tc.InPunchTime as 'Shift Start', 
+    tc.OutPunchTime as 'Shift End',
+    '8 Nairn' as 'Home', 
+    'David' as 'Manager',
+    'New Castle County' as 'County'
+
+FROM 
+    [attendance2022] atn
+
+    left Join isp
+        ON (atn.date=isp.date)
+        AND (isp.Individual=atn.individual)
+        AND ((cast(isp.begin_time as time)>='07:00' AND isp.[duration]>120)
+        AND (cast(isp.begin_time as time)<='10:00' AND isp.[duration]>120))
+
+    Left Join TimeCards2022 tc 
+        ON atn.date=tc.InPunchDay
+        AND tc.Department='SA8'
+
+WHERE 
+    atn.individual like 'JARD%'
+    AND isp.isp_program is NULL
+    -- IF THE INDIVIDUAL GOES TO DAY PROGRAM --
+    AND (datepart(weekday,atn.date)<2 OR datepart(weekday,atn.date)>6) 
+
+Group By atn.date, tc.EarnHours,
+ 
+    atn.individual,
+    tc.InPunchTime,
+    tc.Firstname,
+    tc.Lastname,
+    tc.OutPunchTime, 
+    tc.InPunchDay,
+    atn.attendance,
+    tc.OutPunchDay
+
+HAVING 
+    cast(tc.InPunchTime as time)>='07:00'
+    AND cast(tc.InPunchTime as time)<='10:00'
+      AND atn.attendance like '%12%'
+    AND tc.EarnHours > 3
+  
+
+
+
+
+
+)
+UNION
+(Select 
+    atn.individual as 'Name',
+    atn.Date as 'Date',
+    concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
+    datename(weekday, atn.date) as 'Weekday', 
+    tc.InPunchTime as 'Shift Start', 
+    tc.OutPunchTime as 'Shift End',
+    '8 Nairn' as 'Home', 
+    'David' as 'Manager',
+    'New Castle County' as 'County'
+
+
+FROM [attendance2022] atn
+
+    left Join isp
+        ON (atn.date=isp.date)
+        AND (isp.Individual=atn.individual)
+        AND ((cast(isp.begin_time as time)>='14:00' AND isp.[duration]>120)
+        AND (cast(isp.begin_time as time)<='17:00' AND isp.[duration]>120))
+
+    Left Join TimeCards2022 tc 
+        ON atn.date=tc.InPunchDay
+        AND tc.Department='SA8'
+
+WHERE 
+    atn.individual like 'JARD%'
+    AND isp.isp_program is NULL
+
+
+Group By atn.date, tc.EarnHours,
+ 
+    atn.individual,
+    tc.InPunchTime,
+    tc.Firstname,
+    tc.Lastname,
+    tc.OutPunchTime, 
+    tc.InPunchDay,
+    atn.attendance,
+    tc.OutPunchDay
+
+HAVING 
+    cast(tc.InPunchTime as time)>='14:00'
+    AND cast(tc.InPunchTime as time)<='17:00'
+      AND atn.attendance like '%12%'
+    AND tc.EarnHours > 3
+  
+
+
+
+
+
+)
+UNION
+(Select 
+    atn.individual as 'Name',
+    atn.Date as 'Date',
+    concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
+    datename(weekday, atn.date) as 'Weekday', 
+    tc.InPunchTime as 'Shift Start', 
+    '11:59 PM' as 'Shift End',
+    '8 Nairn' as 'Home',
+    'David' as 'Manager',
+    'New Castle County' as 'County'
+
+FROM [attendance2022] atn
+
+    left Join isp
+        ON (atn.date=isp.date)
+        AND (isp.Individual=atn.individual)
+        AND ((cast(isp.begin_time as time)>='6pm' AND isp.[duration]>=30)
+        AND (cast(isp.begin_time as time)<='11pm' AND isp.[duration]>=30))
+
+    Left Join TimeCards2022 tc
+        ON (atn.date=tc.InPunchDay)
+        AND tc.Department='SA8'
+
+WHERE 
+    atn.individual like 'JARD%'
+    AND isp.isp_program is NULL
+
+Group By atn.date, tc.EarnHours,
+ 
+    atn.individual,
+    tc.InPunchTime,
+    tc.Firstname,
+    tc.Lastname,
+    tc.OutPunchTime, 
+    tc.InPunchDay,
+    atn.attendance,
+    tc.OutPunchDay
+
+HAVING 
+    cast(tc.InPunchTime as time)>='6pm'
+      AND atn.attendance like '%12%'
+    AND tc.EarnHours > 3
+  
+
+
+
+
+
+)
+UNION
+(Select 
+    atn.individual as 'Name',
+    tc.OutPunchDay as 'Date',
+    concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
+    datename(weekday, atn.date) as 'Weekday', 
+    '12:00 AM' as 'Shift Start', 
+    tc.OutPunchTime as 'Shift End',
+    '8 Nairn' as 'Home', 
+    'David' as 'Manager',
+    'New Castle County' as 'County'
+
+FROM [attendance2022] atn
+
+    left Join isp
+        ON (atn.date=isp.date)
+        AND (isp.Individual=atn.individual)
+        AND ((cast(isp.begin_time as time)='12am' AND isp.[duration]>=30))
+
+    Left Join TimeCards2022 tc
+        ON (atn.date=tc.OutPunchDay)
+        AND tc.Department='SA8'
+
+WHERE atn.individual like 'JARD%'
+AND isp.isp_program is NULL
+
+Group By atn.date, tc.EarnHours,
+ 
+    atn.individual,
+    tc.InPunchTime,
+    tc.Firstname,
+    tc.Lastname,
+    tc.OutPunchTime, 
+    tc.InPunchDay,
+    atn.attendance,
+    tc.OutPunchDay
+
+HAVING 
+    cast(tc.InPunchTime as time)>='6pm'
+      AND atn.attendance like '%12%'
+    AND tc.EarnHours > 3
+  
+
+
+
+
+
+
+)
+
+-- ROBERT SEWARD --
+UNION
+(Select 
+    atn.individual as 'Name',
+    atn.Date as 'Date',
+    concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
+    datename(weekday, atn.date) as 'Weekday', 
+    tc.InPunchTime as 'Shift Start', 
+    tc.OutPunchTime as 'Shift End',
+                'E104' AS 'Home',
+                'Teena' as 'Manager',
+                'Kent County' as 'County'
 
     FROM [attendance2022] atn
 
-        left Join isp
+      
+            left Join isp
         ON (atn.date=isp.date)
         AND (isp.Individual=atn.individual)
         AND ((cast(isp.begin_time as time)>='07:00' AND isp.[duration]>120)
         AND (cast(isp.begin_time as time)<='09:00' AND isp.[duration]>120))
 
 
-        Left Join TimeCards2022 tc
+    Left Join TimeCards2022 tc 
         ON atn.date=tc.InPunchDay
-        AND tc.Department='W103'
+            AND tc.Department='W104'
 
-    WHERE
-        atn.individual like 'WOOT%'
-        AND isp.isp_program is NULL
-        -- IF THE INDIVIDUAL GOES TO DAY PROGRAM --
-        -- AND (datepart(weekday,atn.date)<2 OR datepart(weekday,atn.date)>6)
+    WHERE atn.individual like 'SEWARD%'
+            AND isp.isp_program is NULL
+             -- IF THE INDIVIDUAL GOES TO DAY PROGRAM --
+           -- AND (datepart(weekday,atn.date)<2 OR datepart(weekday,atn.date)>6) 
 
+Group By atn.date, tc.EarnHours,
+ 
+    atn.individual,
+    tc.InPunchTime,
+    tc.Firstname,
+    tc.Lastname,
+    tc.OutPunchTime, 
+    tc.InPunchDay,
+    atn.attendance,
+    tc.OutPunchDay
 
-   Group By
-        atn.individual,
-        tc.InPunchTime,
-        tc.Firstname,
-        tc.Lastname,
-        tc.OutPunchTime,
-        tc.InPunchDay,
-        atn.attendance,
-        tc.OutPunchDay,
-        atn.Date
-    HAVING
-        datepart(hour, tc.InPunchTime)>=7
-        AND datepart(hour, tc.InPunchTime)<=10
-        AND atn.attendance like '%12%'
-
-
+HAVING 
+    datepart(hour, tc.InPunchTime)>=7
+    AND datepart(hour, tc.InPunchTime)<=10
+      AND atn.attendance like '%12%'
+    AND tc.EarnHours > 3
 
 
-    )
 
 
-    UNION
-    (Select
-        atn.individual as 'Name',
-        tc.InPunchDay as 'Date',
-        concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, atn.Date) as 'Weekday',
-        tc.InPunchTime as 'Shift Start',
-        tc.OutPunchTime as 'Shift End',
-                    'E104' AS 'Home',
-                    'Teena' as 'Manager',
-                    'Kent County' as 'County'
+         
 
-        FROM [attendance2022] atn
+)
+UNION
+(SELECT 
+    atn.individual as 'Name',
+    atn.Date as 'Date',
+    concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
+    datename(weekday, atn.date) as 'Weekday', 
+    tc.InPunchTime as 'Shift Start', 
+    tc.OutPunchTime as 'Shift End',
+                'E104' AS 'Home',
+                'Teena' as 'Manager',
+                'Kent County' as 'County'
+
+    FROM [attendance2022] atn
+
+             left Join isp
+    ON (atn.date=isp.date)
+    AND (isp.Individual=atn.individual)
+    AND ((cast(isp.begin_time as time)>='14:00' AND isp.[duration]>120)
+    AND (cast(isp.begin_time as time)<='17:00' AND isp.[duration]>120))
+
+    Left Join TimeCards2022 tc 
+    ON atn.date=tc.InPunchDay
+            AND tc.Department='W104'
+
+    WHERE atn.individual like 'SEWARD%'
+            AND isp.isp_program is NULL
+
+Group By atn.date, tc.EarnHours,
+ 
+    atn.individual,
+    tc.InPunchTime,
+    tc.Firstname,
+    tc.Lastname,
+    tc.OutPunchTime, 
+    tc.InPunchDay,
+    atn.attendance,
+    tc.OutPunchDay
+
+HAVING 
+    cast(tc.InPunchTime as time)>='14:00'
+    AND cast(tc.InPunchTime as time)<='17:00'
+      AND atn.attendance like '%12%'
+    AND tc.EarnHours > 3
 
 
-                left Join isp
+
+
+        
+
+)
+UNION
+(Select 
+    atn.individual as 'Name',
+    atn.Date as 'Date',
+    concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
+    datename(weekday, atn.date) as 'Weekday', 
+    tc.InPunchTime as 'Shift Start', 
+    '11:59 PM' as 'Shift End',
+                'E104' AS 'Home',
+                'Teena' as 'Manager',
+                'Kent County' as 'County'
+
+    FROM [attendance2022] atn
+
+    left Join isp
             ON (atn.date=isp.date)
             AND (isp.Individual=atn.individual)
-            AND ((cast(isp.begin_time as time)>='07:00' AND isp.[duration]>120)
-            AND (cast(isp.begin_time as time)<='09:00' AND isp.[duration]>120))
+            AND ((cast(isp.begin_time as time)>='6pm' AND isp.[duration]>=30)
+                AND (cast(isp.begin_time as time)<='11pm' AND isp.[duration]>=30))
+        
+    Left Join TimeCards2022 tc
+        ON (atn.date=tc.InPunchDay)
+            AND tc.Department='W104'
 
+    WHERE atn.individual like 'SEWARD%'
+           AND isp.isp_program is NULL
 
-        Left Join TimeCards2022 tc
-            ON atn.date=tc.InPunchDay
-                AND tc.Department='W104'
+Group By atn.date, tc.EarnHours,
+ 
+    atn.individual,
+    tc.InPunchTime,
+    tc.Firstname,
+    tc.Lastname,
+    tc.OutPunchTime, 
+    tc.InPunchDay,
+    atn.attendance,
+    tc.OutPunchDay
 
-        WHERE atn.individual like 'WRIGHT%'
-                AND isp.isp_program is NULL
-                 -- IF THE INDIVIDUAL GOES TO DAY PROGRAM --
-               and (datepart(weekday,atn.date)<2 OR datepart(weekday,atn.date)>6)
-
-   Group By
-        atn.individual,
-        tc.InPunchTime,
-        tc.Firstname,
-        tc.Lastname,
-        tc.OutPunchTime,
-        tc.InPunchDay,
-        atn.attendance,
-        tc.OutPunchDay,
-        atn.Date
-    HAVING
-        datepart(hour, tc.InPunchTime)>=7
-        AND datepart(hour, tc.InPunchTime)<=10
-        AND atn.attendance like '%12%'
-
+HAVING 
+    cast(tc.InPunchTime as time)>='6pm'
+      AND atn.attendance like '%12%'
+    AND tc.EarnHours > 3
 
 
 
+        
 
 
-    )
-    UNION
-    (SELECT
-        atn.individual as 'Name',
-        tc.InPunchDay as 'Date',
-        concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, atn.Date) as 'Weekday',
-        tc.InPunchTime as 'Shift Start',
-        tc.OutPunchTime as 'Shift End',
-                    'E104' AS 'Home',
-                    'Teena' as 'Manager',
-                    'Kent County' as 'County'
+)
+UNION
+(Select 
+    atn.individual as 'Name',
+    tc.OutPunchDay as 'Date',
+    concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
+    datename(weekday, atn.date) as 'Weekday', 
+    '12:00 AM' as 'Shift Start', 
+    tc.OutPunchTime as 'Shift End', 
+                'E104' AS 'Home',
+                'Teena' as 'Manager',
+                'Kent County' as 'County'
+    FROM [attendance2022] atn
 
-        FROM [attendance2022] atn
+          left Join isp
+    ON (atn.date=isp.date)
+    AND (isp.Individual=atn.individual)
+    AND ((cast(isp.begin_time as time)='12am' AND isp.[duration]>=30))
 
-                 left Join isp
+    Left Join TimeCards2022 tc
+    ON (atn.date=tc.OutPunchDay)
+            AND tc.Department='W104'
+
+    WHERE atn.individual like 'SEWARD%'
+           AND isp.isp_program is NULL
+
+Group By atn.date, tc.EarnHours,
+ 
+    atn.individual,
+    tc.InPunchTime,
+    tc.Firstname,
+    tc.Lastname,
+    tc.OutPunchTime, 
+    tc.InPunchDay,
+    atn.attendance,
+    tc.OutPunchDay
+
+
+HAVING 
+    cast(tc.InPunchTime as time)>='6pm'
+      AND atn.attendance like '%12%'
+    AND tc.EarnHours > 3
+
+
+
+
+        
+
+)
+
+-- CHARLES LEVAN -- 
+UNION
+(SELECT
+	atn.individual as 'Name',
+	atn.Date as 'Date',
+	concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
+	datename(weekday, atn.date) as 'Weekday', 
+	tc.InPunchTime as 'Shift Start', 
+	tc.OutPunchTime as 'Shift End',
+                'J101' as 'Home',
+                'Paul' as 'Manager',
+                'Kent County' as 'County'
+
+
+	From TOBOLA..[isp] isp
+                Right Join TOBOLA..[attendance2022] atn
+                    On atn.date=isp.[date] AND atn.individual=isp.individual
+                Right Join TimeCards2022 tc
+                    On (concat(datename(weekday, tc.InPunchDay), ', ',datename(MONTH, tc.InPunchDay),' ', datename(day, tc.InPunchDay),', ', datename(year, tc.InPunchDay)))
+	=
+	concat(datename(weekday, atn.date), ', ',datename(MONTH, atn.date),' ', datename(day, atn.date),', ', datename(year, atn.date))
+
+    Where (atn.Program_Site like '324%' or atn.Program_Site like '104%' or atn.Program_Site like '%101%' or atn.Program_Site like '%110%' or atn.Program_Site like 'west%')
+                  AND atn.attendance like '%12%'
+    AND tc.EarnHours > 3 AND isp.date is null
+                AND atn.individual like 'levan%'
+                AND tc.Department='J101'AND (tc.EarnCode='R' OR tc.EarnCode is null)
+	
+	
+Group By atn.date, tc.EarnHours,
+ 
+	atn.individual, 
+	isp.[date], 
+	atn.date, 
+	atn.attendance, 
+	tc.Firstname, 
+	tc.Lastname, 
+	tc.InPunchTime, 
+	tc.OutPunchTime, 
+	TC.InPunchDay
+
+		
+)
+
+-- JOSEPH GREEN -- 
+UNION
+(Select 
+    atn.individual as 'Name',
+    atn.Date as 'Date',
+    concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
+    datename(weekday, atn.date) as 'Weekday', 
+    tc.InPunchTime as 'Shift Start', 
+    tc.OutPunchTime as 'Shift End',
+    'K110' as 'Home',
+    'Paul' as 'Manager',
+    'Kent County' as 'County'
+
+FROM [Attendance2022] atn
+
+    left Join isp
+        ON (atn.date=isp.date)
+        AND (isp.Individual=atn.individual)
+        AND ((cast(isp.begin_time as time)>='07:00' AND isp.[duration]>120)
+        AND (cast(isp.begin_time as time)<='09:00' AND isp.[duration]>120))
+
+
+    Left Join TimeCards2022 tc 
+        ON atn.date=tc.InPunchDay
+        AND tc.Department='k110'
+
+WHERE 
+    atn.individual like 'gree%'
+    AND isp.isp_program is NULL
+    -- IF THE INDIVIDUAL GOES TO DAY PROGRAM --
+    -- AND (datepart(weekday,atn.date)<2 OR datepart(weekday,atn.date)>6) 
+
+Group By atn.date, tc.EarnHours,
+ 
+    atn.individual,
+    tc.InPunchTime,
+    tc.Firstname,
+    tc.Lastname,
+    tc.OutPunchTime, 
+    tc.InPunchDay,
+    atn.attendance,
+    tc.OutPunchDay
+
+HAVING 
+    datepart(hour, tc.InPunchTime)>=7
+    AND datepart(hour, tc.InPunchTime)<=10
+      AND atn.attendance like '%12%'
+    AND tc.EarnHours > 3
+
+
+
+
+
+)
+UNION
+(Select 
+    atn.individual as 'Name',
+    atn.Date as 'Date',
+    concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
+    datename(weekday, atn.date) as 'Weekday', 
+    tc.InPunchTime as 'Shift Start', 
+    tc.OutPunchTime as 'Shift End',
+    'K110' as 'Home',
+    'Paul' as 'Manager',
+    'Kent County' as 'County'
+
+
+FROM [Attendance2022] atn
+
+    left Join isp
+    ON (atn.date=isp.date)
+    AND (isp.Individual=atn.individual)
+    AND ((cast(isp.begin_time as time)>='14:00' AND isp.[duration]>120)
+    AND (cast(isp.begin_time as time)<='17:00' AND isp.[duration]>120))
+
+    Left Join TimeCards2022 tc 
+    ON atn.date=tc.InPunchDay
+    AND tc.Department='k110'
+
+WHERE 
+    atn.individual like 'gree%'
+    AND isp.isp_program is NULL
+
+
+Group By atn.date, tc.EarnHours,
+ 
+    atn.individual,
+    tc.InPunchTime,
+    tc.Firstname,
+    tc.Lastname,
+    tc.OutPunchTime, 
+    tc.InPunchDay,
+    atn.attendance,
+    tc.OutPunchDay
+
+HAVING 
+    cast(tc.InPunchTime as time)>='14:00'
+    AND cast(tc.InPunchTime as time)<='17:00'
+      AND atn.attendance like '%12%'
+    AND tc.EarnHours > 3
+
+
+
+)
+UNION
+(Select 
+    atn.individual as 'Name',
+    atn.Date as 'Date',
+    concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
+    datename(weekday, atn.date) as 'Weekday', 
+    tc.InPunchTime as 'Shift Start', 
+    '11:59 PM' as 'Shift End',
+    'K110' as 'Home',
+    'Paul' as 'Manager',
+    'Kent County' as 'County'
+
+FROM [Attendance2022] atn
+
+    left Join isp
+    ON (atn.date=isp.date)
+    AND (isp.Individual=atn.individual)
+    AND ((cast(isp.begin_time as time)>='6pm' AND isp.[duration]>=30)
+    AND (cast(isp.begin_time as time)<='11pm' AND isp.[duration]>=30))
+
+    Left Join TimeCards2022 tc
+    ON (atn.date=tc.InPunchDay)
+    AND tc.Department='k110'
+
+WHERE 
+    atn.individual like 'gree%'
+    AND isp.isp_program is NULL
+
+Group By atn.date, tc.EarnHours,
+ 
+atn.individual,
+    tc.InPunchTime,
+    tc.Firstname,
+    tc.Lastname,
+    tc.OutPunchTime, 
+    tc.InPunchDay,
+    atn.attendance
+
+HAVING 
+    cast(tc.InPunchTime as time)>='6pm'
+      AND atn.attendance like '%12%'
+    AND tc.EarnHours > 3
+
+
+
+)
+UNION
+(Select 
+    atn.individual as 'Name',
+    tc.OutPunchDay as 'Date',
+    concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
+    datename(weekday, atn.date) as 'Weekday', 
+    '12:00 AM' as 'Shift Start', 
+    tc.OutPunchTime as 'Shift End',                                                                                                                                                                                                                                                           
+    'K110' as 'Home',
+    'Paul' as 'Manager',
+    'Kent County' as 'County'
+
+FROM [Attendance2022] atn
+
+    left Join isp
+    ON (atn.date=isp.date)
+    AND (isp.Individual=atn.individual)
+    AND ((cast(isp.begin_time as time)='12am' AND isp.[duration]>=30))
+
+    Left Join TimeCards2022 tc
+    ON (atn.date=tc.OutPunchDay)
+    AND tc.Department='k110'
+
+WHERE 
+    atn.individual like 'gree%'
+    AND isp.isp_program is NULL
+
+
+Group By atn.date, tc.EarnHours,
+ 
+    atn.individual,
+    tc.InPunchTime,
+    tc.Firstname,
+    tc.Lastname,
+    tc.OutPunchTime, 
+    tc.InPunchDay,
+    atn.attendance,
+    tc.OutPunchDay
+
+
+HAVING 
+    cast(tc.InPunchTime as time)>='6pm'
+      AND atn.attendance like '%12%'
+    AND tc.EarnHours > 3
+
+
+
+
+
+)
+
+-- JANET JAMES -- 
+UNION
+(Select 
+    atn.individual as 'Name',
+    atn.Date as 'Date',
+    concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
+    datename(weekday, atn.date) as 'Weekday', 
+    tc.InPunchTime as 'Shift Start', 
+    tc.OutPunchTime as 'Shift End',
+                'E103' as 'Home',
+                'Teena' as 'Manager',
+                'Kent County' as 'County'
+    FROM [Attendance2022] atn
+
+            left Join isp
+        ON (atn.date=isp.date)
+        AND (isp.Individual=atn.individual)
+        AND ((cast(isp.begin_time as time)>='07:00' AND isp.[duration]>120)
+        AND (cast(isp.begin_time as time)<='09:00' AND isp.[duration]>120))
+
+
+    Left Join TimeCards2022 tc 
+        ON atn.date=tc.InPunchDay
+            AND tc.Department='W103'
+
+    WHERE atn.individual like 'JAMES%'
+            AND isp.isp_program is NULL
+             -- IF THE INDIVIDUAL GOES TO DAY PROGRAM --
+            AND (datepart(weekday,atn.date)<2 OR datepart(weekday,atn.date)>6) 
+Group By atn.date, tc.EarnHours,
+ 
+    atn.individual,
+    tc.InPunchTime,
+    tc.Firstname,
+    tc.Lastname,
+    tc.OutPunchTime, 
+    tc.InPunchDay,
+    atn.attendance,
+    tc.OutPunchDay
+
+HAVING 
+    datepart(hour, tc.InPunchTime)>=7
+    AND datepart(hour, tc.InPunchTime)<=10
+      AND atn.attendance like '%12%'
+    AND tc.EarnHours > 3
+
+
+
+
+         
+        
+
+)
+UNION
+(Select 
+    atn.individual as 'Name',
+    atn.Date as 'Date',
+    concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
+    datename(weekday, atn.date) as 'Weekday', 
+    tc.InPunchTime as 'Shift Start', 
+    tc.OutPunchTime as 'Shift End',
+                'E103' as 'Home',
+                'Teena' as 'Manager',
+                'Kent County' as 'County'
+
+
+    FROM [Attendance2022] atn
+
+        left Join isp
+    ON (atn.date=isp.date)
+    AND (isp.Individual=atn.individual)
+    AND ((cast(isp.begin_time as time)>='14:00' AND isp.[duration]>120)
+    AND (cast(isp.begin_time as time)<='17:00' AND isp.[duration]>120))
+
+    Left Join TimeCards2022 tc 
+    ON atn.date=tc.InPunchDay
+            AND tc.Department='W103'
+
+    WHERE atn.individual like 'JAMES%'
+           AND isp.isp_program is NULL
+
+
+Group By atn.date, tc.EarnHours,
+ 
+    atn.individual,
+    tc.InPunchTime,
+    tc.Firstname,
+    tc.Lastname,
+    tc.OutPunchTime, 
+    tc.InPunchDay,
+    atn.attendance,
+    tc.OutPunchDay
+
+HAVING 
+    cast(tc.InPunchTime as time)>='14:00'
+    AND cast(tc.InPunchTime as time)<='17:00'
+      AND atn.attendance like '%12%'
+    AND tc.EarnHours > 3
+
+
+
+
+
+)
+UNION
+(Select 
+    atn.individual as 'Name',
+    atn.Date as 'Date',
+    concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
+    datename(weekday, atn.date) as 'Weekday', 
+    tc.InPunchTime as 'Shift Start', 
+    '11:59 PM' as 'Shift End',
+                'E103' as 'Home',
+                'Teena' as 'Manager',
+                'Kent County' as 'County'
+
+    FROM [attendance2022] atn
+
+         left Join isp
+            ON (atn.date=isp.date)
+            AND (isp.Individual=atn.individual)
+            AND ((cast(isp.begin_time as time)>='6pm' AND isp.[duration]>=30)
+                AND (cast(isp.begin_time as time)<='11pm' AND isp.[duration]>=30))
+        
+    Left Join TimeCards2022 tc
+        ON (atn.date=tc.InPunchDay)
+            AND tc.Department='W103'
+
+    WHERE atn.individual like 'JAMES%'
+            AND isp.isp_program is NULL
+
+Group By atn.date, tc.EarnHours,
+ 
+    atn.individual,
+    tc.InPunchTime,
+    tc.Firstname,
+    tc.Lastname,
+    tc.OutPunchTime, 
+    tc.InPunchDay,
+    atn.attendance,
+    tc.OutPunchDay
+
+HAVING 
+    cast(tc.InPunchTime as time)>='6pm'
+      AND atn.attendance like '%12%'
+    AND tc.EarnHours > 3
+
+
+
+        
+
+)
+UNION
+(Select 
+    atn.individual as 'Name',
+    tc.OutPunchDay as 'Date',
+    concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
+    datename(weekday, atn.date) as 'Weekday', 
+    '12:00 AM' as 'Shift Start', 
+    tc.OutPunchTime as 'Shift End',  
+                'E103' as 'Home',
+                'Teena' as 'Manager',
+                'Kent County' as 'County'
+
+    FROM [attendance2022] atn
+
+           left Join isp
+    ON (atn.date=isp.date)
+    AND (isp.Individual=atn.individual)
+    AND ((cast(isp.begin_time as time)='12am' AND isp.[duration]>=30))
+
+    Left Join TimeCards2022 tc
+    ON (atn.date=tc.OutPunchDay)
+            AND tc.Department='W103'
+
+    WHERE atn.individual like 'JAMES%'
+           AND isp.isp_program is NULL
+
+
+Group By atn.date, tc.EarnHours,
+ 
+    atn.individual,
+    tc.InPunchTime,
+    tc.Firstname,
+    tc.Lastname,
+    tc.OutPunchTime, 
+    tc.InPunchDay,
+    atn.attendance,
+    tc.OutPunchDay
+
+
+HAVING 
+    cast(tc.InPunchTime as time)>='6pm'
+      AND atn.attendance like '%12%'
+    AND tc.EarnHours > 3
+
+
+
+
+
+
+
+)
+
+-- CHRISTINA CHITUCK --
+
+UNION
+(Select 
+    atn.individual as 'Name',
+    atn.Date as 'Date',
+    concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
+    datename(weekday, atn.date) as 'Weekday', 
+    tc.InPunchTime as 'Shift Start', 
+    tc.OutPunchTime as 'Shift End',
+                'E103' as 'Home',
+                'Teena' as 'Manager',
+                'Kent County' as 'County'
+    FROM [Attendance2022] atn
+
+            left Join isp
+        ON (atn.date=isp.date)
+        AND (isp.Individual=atn.individual)
+        AND ((cast(isp.begin_time as time)>='07:00' AND isp.[duration]>120)
+        AND (cast(isp.begin_time as time)<='09:00' AND isp.[duration]>120))
+
+
+    Left Join TimeCards2022 tc 
+        ON atn.date=tc.InPunchDay
+            AND tc.Department='W103'
+
+    WHERE atn.individual like 'CHIT%'
+            AND isp.isp_program is NULL
+             -- IF THE INDIVIDUAL GOES TO DAY PROGRAM --
+            AND (datepart(weekday,atn.date)<2 OR datepart(weekday,atn.date)>6) 
+Group By atn.date, tc.EarnHours,
+ 
+    atn.individual,
+    tc.InPunchTime,
+    tc.Firstname,
+    tc.Lastname,
+    tc.OutPunchTime, 
+    tc.InPunchDay,
+    atn.attendance,
+    tc.OutPunchDay
+
+HAVING 
+    datepart(hour, tc.InPunchTime)>=7
+    AND datepart(hour, tc.InPunchTime)<=10
+      AND atn.attendance like '%12%'
+    AND tc.EarnHours > 3
+
+
+
+
+         
+        
+
+)
+UNION
+(Select 
+    atn.individual as 'Name',
+    atn.Date as 'Date',
+    concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
+    datename(weekday, atn.date) as 'Weekday', 
+    tc.InPunchTime as 'Shift Start', 
+    tc.OutPunchTime as 'Shift End',
+                'E103' as 'Home',
+                'Teena' as 'Manager',
+                'Kent County' as 'County'
+
+
+    FROM [Attendance2022] atn
+
+        left Join isp
+    ON (atn.date=isp.date)
+    AND (isp.Individual=atn.individual)
+    AND ((cast(isp.begin_time as time)>='14:00' AND isp.[duration]>120)
+    AND (cast(isp.begin_time as time)<='17:00' AND isp.[duration]>120))
+
+    Left Join TimeCards2022 tc 
+    ON atn.date=tc.InPunchDay
+            AND tc.Department='W103'
+
+    WHERE atn.individual like 'CHIT%'
+           AND isp.isp_program is NULL
+
+
+Group By atn.date, tc.EarnHours,
+ 
+    atn.individual,
+    tc.InPunchTime,
+    tc.Firstname,
+    tc.Lastname,
+    tc.OutPunchTime, 
+    tc.InPunchDay,
+    atn.attendance,
+    tc.OutPunchDay
+
+HAVING 
+    cast(tc.InPunchTime as time)>='14:00'
+    AND cast(tc.InPunchTime as time)<='17:00'
+      AND atn.attendance like '%12%'
+    AND tc.EarnHours > 3
+
+
+
+
+
+)
+UNION
+(Select 
+    atn.individual as 'Name',
+    atn.Date as 'Date',
+    concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
+    datename(weekday, atn.date) as 'Weekday', 
+    tc.InPunchTime as 'Shift Start', 
+    '11:59 PM' as 'Shift End',
+                'E103' as 'Home',
+                'Teena' as 'Manager',
+                'Kent County' as 'County'
+
+    FROM [attendance2022] atn
+
+         left Join isp
+            ON (atn.date=isp.date)
+            AND (isp.Individual=atn.individual)
+            AND ((cast(isp.begin_time as time)>='6pm' AND isp.[duration]>=30)
+                AND (cast(isp.begin_time as time)<='11pm' AND isp.[duration]>=30))
+        
+    Left Join TimeCards2022 tc
+        ON (atn.date=tc.InPunchDay)
+            AND tc.Department='W103'
+
+    WHERE atn.individual like 'CHIT%'
+            AND isp.isp_program is NULL
+
+Group By atn.date, tc.EarnHours,
+ 
+    atn.individual,
+    tc.InPunchTime,
+    tc.Firstname,
+    tc.Lastname,
+    tc.OutPunchTime, 
+    tc.InPunchDay,
+    atn.attendance,
+    tc.OutPunchDay
+
+HAVING 
+    cast(tc.InPunchTime as time)>='6pm'
+      AND atn.attendance like '%12%'
+    AND tc.EarnHours > 3
+
+
+
+        
+
+)
+UNION
+(Select 
+    atn.individual as 'Name',
+    tc.OutPunchDay as 'Date',
+    concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
+    datename(weekday, atn.date) as 'Weekday', 
+    '12:00 AM' as 'Shift Start', 
+    tc.OutPunchTime as 'Shift End',  
+                'E103' as 'Home',
+                'Teena' as 'Manager',
+                'Kent County' as 'County'
+
+    FROM [attendance2022] atn
+
+           left Join isp
+    ON (atn.date=isp.date)
+    AND (isp.Individual=atn.individual)
+    AND ((cast(isp.begin_time as time)='12am' AND isp.[duration]>=30))
+
+    Left Join TimeCards2022 tc
+    ON (atn.date=tc.OutPunchDay)
+            AND tc.Department='W103'
+
+    WHERE atn.individual like 'CHIT%'
+           AND isp.isp_program is NULL
+
+
+Group By atn.date, tc.EarnHours,
+ 
+    atn.individual,
+    tc.InPunchTime,
+    tc.Firstname,
+    tc.Lastname,
+    tc.OutPunchTime, 
+    tc.InPunchDay,
+    atn.attendance,
+    tc.OutPunchDay
+
+
+HAVING 
+    cast(tc.InPunchTime as time)>='6pm'
+      AND atn.attendance like '%12%'
+    AND tc.EarnHours > 3
+
+
+
+
+
+
+
+)
+
+-- BRIANNA WOOTERS --
+UNION
+(Select 
+    atn.individual as 'Name',
+    atn.Date as 'Date',
+    concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
+    datename(weekday, atn.date) as 'Weekday', 
+    tc.InPunchTime as 'Shift Start', 
+    tc.OutPunchTime as 'Shift End',
+    'E103' as 'Home',
+    'Teena' as 'Manager',
+    'Kent County' as 'County'
+
+FROM [attendance2022] atn
+
+    left Join isp
+    ON (atn.date=isp.date)
+    AND (isp.Individual=atn.individual)
+    AND ((cast(isp.begin_time as time)>='07:00' AND isp.[duration]>120)
+    AND (cast(isp.begin_time as time)<='09:00' AND isp.[duration]>120))
+
+
+    Left Join TimeCards2022 tc 
+    ON atn.date=tc.InPunchDay
+    AND tc.Department='W103'
+
+WHERE 
+    atn.individual like 'WOOT%'
+    AND isp.isp_program is NULL
+    -- IF THE INDIVIDUAL GOES TO DAY PROGRAM --
+    -- AND (datepart(weekday,atn.date)<2 OR datepart(weekday,atn.date)>6) 
+
+
+Group By atn.date, tc.EarnHours,
+ 
+    atn.individual,
+    tc.InPunchTime,
+    tc.Firstname,
+    tc.Lastname,
+    tc.OutPunchTime, 
+    tc.InPunchDay,
+    atn.attendance,
+    tc.OutPunchDay
+
+HAVING 
+    datepart(hour, tc.InPunchTime)>=7
+    AND datepart(hour, tc.InPunchTime)<=10
+      AND atn.attendance like '%12%'
+    AND tc.EarnHours > 3
+
+
+
+
+)
+
+-- RALPH WRIGHT -- 
+
+UNION
+(Select 
+    atn.individual as 'Name',
+    atn.Date as 'Date',
+    concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
+    datename(weekday, atn.date) as 'Weekday', 
+    tc.InPunchTime as 'Shift Start', 
+    tc.OutPunchTime as 'Shift End',
+                'E104' AS 'Home',
+                'Teena' as 'Manager',
+                'Kent County' as 'County'
+
+    FROM [attendance2022] atn
+
+      
+            left Join isp
+        ON (atn.date=isp.date)
+        AND (isp.Individual=atn.individual)
+        AND ((cast(isp.begin_time as time)>='07:00' AND isp.[duration]>120)
+        AND (cast(isp.begin_time as time)<='09:00' AND isp.[duration]>120))
+
+
+    Left Join TimeCards2022 tc 
+        ON atn.date=tc.InPunchDay
+            AND tc.Department='W104'
+
+    WHERE atn.individual like 'WRIGHT%'
+            AND isp.isp_program is NULL
+             -- IF THE INDIVIDUAL GOES TO DAY PROGRAM --
+           and (datepart(weekday,atn.date)<2 OR datepart(weekday,atn.date)>6) 
+
+Group By atn.date, tc.EarnHours,
+ 
+    atn.individual,
+    tc.InPunchTime,
+    tc.Firstname,
+    tc.Lastname,
+    tc.OutPunchTime, 
+    tc.InPunchDay,
+    atn.attendance,
+    tc.OutPunchDay
+
+HAVING 
+    datepart(hour, tc.InPunchTime)>=7
+    AND datepart(hour, tc.InPunchTime)<=10
+      AND atn.attendance like '%12%'
+    AND tc.EarnHours > 3
+
+
+
+
+         
+
+)
+UNION
+(SELECT 
+    atn.individual as 'Name',
+    atn.Date as 'Date',
+    concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
+    datename(weekday, atn.date) as 'Weekday', 
+    tc.InPunchTime as 'Shift Start', 
+    tc.OutPunchTime as 'Shift End',
+                'E104' AS 'Home',
+                'Teena' as 'Manager',
+                'Kent County' as 'County'
+
+    FROM [attendance2022] atn
+
+             left Join isp
+    ON (atn.date=isp.date)
+    AND (isp.Individual=atn.individual)
+    AND ((cast(isp.begin_time as time)>='14:00' AND isp.[duration]>120)
+    AND (cast(isp.begin_time as time)<='17:00' AND isp.[duration]>120))
+
+    Left Join TimeCards2022 tc 
+    ON atn.date=tc.InPunchDay
+            AND tc.Department='W104'
+
+    WHERE atn.individual like 'WRIGHT%'
+            AND isp.isp_program is NULL
+
+Group By atn.date, tc.EarnHours,
+ 
+    atn.individual,
+    tc.InPunchTime,
+    tc.Firstname,
+    tc.Lastname,
+    tc.OutPunchTime, 
+    tc.InPunchDay,
+    atn.attendance,
+    tc.OutPunchDay
+
+HAVING 
+    cast(tc.InPunchTime as time)>='14:00'
+    AND cast(tc.InPunchTime as time)<='17:00'
+      AND atn.attendance like '%12%'
+    AND tc.EarnHours > 3
+
+
+
+
+        
+
+)
+UNION
+(Select 
+    atn.individual as 'Name',
+    atn.Date as 'Date',
+    concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
+    datename(weekday, atn.date) as 'Weekday', 
+    tc.InPunchTime as 'Shift Start', 
+    '11:59 PM' as 'Shift End',
+                'E104' AS 'Home',
+                'Teena' as 'Manager',
+                'Kent County' as 'County'
+
+    FROM [attendance2022] atn
+
+    left Join isp
+            ON (atn.date=isp.date)
+            AND (isp.Individual=atn.individual)
+            AND ((cast(isp.begin_time as time)>='6pm' AND isp.[duration]>=30)
+                AND (cast(isp.begin_time as time)<='11pm' AND isp.[duration]>=30))
+        
+    Left Join TimeCards2022 tc
+        ON (atn.date=tc.InPunchDay)
+            AND tc.Department='W104'
+
+    WHERE atn.individual like 'WRIGHT%'
+           AND isp.isp_program is NULL
+
+Group By atn.date, tc.EarnHours,
+ 
+    atn.individual,
+    tc.InPunchTime,
+    tc.Firstname,
+    tc.Lastname,
+    tc.OutPunchTime, 
+    tc.InPunchDay,
+    atn.attendance,
+    tc.OutPunchDay
+
+HAVING 
+    cast(tc.InPunchTime as time)>='6pm'
+      AND atn.attendance like '%12%'
+    AND tc.EarnHours > 3
+
+
+
+        
+
+
+)
+UNION
+(Select 
+    atn.individual as 'Name',
+    tc.OutPunchDay as 'Date',
+    concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
+    datename(weekday, atn.date) as 'Weekday', 
+    '12:00 AM' as 'Shift Start', 
+    tc.OutPunchTime as 'Shift End', 
+                'E104' AS 'Home',
+                'Teena' as 'Manager',
+                'Kent County' as 'County'
+    FROM [attendance2022] atn
+
+          left Join isp
+    ON (atn.date=isp.date)
+    AND (isp.Individual=atn.individual)
+    AND ((cast(isp.begin_time as time)='12am' AND isp.[duration]>=30))
+
+    Left Join TimeCards2022 tc
+    ON (atn.date=tc.OutPunchDay)
+            AND tc.Department='W104'
+
+    WHERE atn.individual like 'WRIGHT%'
+           AND isp.isp_program is NULL
+
+Group By atn.date, tc.EarnHours,
+ 
+    atn.individual,
+    tc.InPunchTime,
+    tc.Firstname,
+    tc.Lastname,
+    tc.OutPunchTime, 
+    tc.InPunchDay,
+    atn.attendance,
+    tc.OutPunchDay
+
+
+HAVING 
+    cast(tc.InPunchTime as time)>='6pm'
+      AND atn.attendance like '%12%'
+    AND tc.EarnHours > 3
+
+
+
+
+        
+
+)
+
+UNION
+-- NYEA GOLDSBERRY --
+
+(Select 
+    atn.individual as 'Name',
+    atn.Date as 'Date',
+    concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
+    datename(weekday, atn.date) as 'Weekday', 
+    tc.InPunchTime as 'Shift Start', 
+    tc.OutPunchTime as 'Shift End',
+    '8 Nairn' as 'Home', 
+    'David' as 'Manager',
+    'New Castle County' as 'County'
+
+FROM 
+    [attendance2022] atn
+
+    left Join isp
+        ON (atn.date=isp.date)
+        AND (isp.Individual=atn.individual)
+        AND ((cast(isp.begin_time as time)>='07:00' AND isp.[duration]>120)
+        AND (cast(isp.begin_time as time)<='10:00' AND isp.[duration]>120))
+
+    Left Join TimeCards2022 tc 
+        ON atn.date=tc.InPunchDay
+        AND tc.Department='SA8'
+        
+
+WHERE 
+    atn.individual like 'GOLDS%'
+    AND isp.isp_program is NULL
+    -- IF THE INDIVIDUAL GOES TO DAY PROGRAM --
+    --AND (datepart(weekday,atn.date)<2 OR datepart(weekday,atn.date)>6) 
+
+Group By atn.date, tc.EarnHours,
+ 
+    atn.individual,
+    tc.InPunchTime,
+    tc.Firstname,
+    tc.Lastname,
+    tc.OutPunchTime, 
+    tc.InPunchDay,
+    atn.attendance,
+    tc.OutPunchDay
+
+HAVING 
+    cast(tc.InPunchTime as time)>='07:00'
+    AND cast(tc.InPunchTime as time)<='10:00'
+      AND atn.attendance like '%12%'
+    AND tc.EarnHours > 3
+
+
+
+
+
+)
+
+UNION
+(Select 
+    atn.individual as 'Name',
+    atn.Date as 'Date',
+    concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
+    datename(weekday, atn.date) as 'Weekday', 
+    tc.InPunchTime as 'Shift Start', 
+    tc.OutPunchTime as 'Shift End',
+    '8 Nairn' as 'Home', 
+    'David' as 'Manager',
+    'New Castle County' as 'County'
+
+
+FROM [attendance2022] atn
+
+    left Join isp
         ON (atn.date=isp.date)
         AND (isp.Individual=atn.individual)
         AND ((cast(isp.begin_time as time)>='14:00' AND isp.[duration]>120)
         AND (cast(isp.begin_time as time)<='17:00' AND isp.[duration]>120))
 
-        Left Join TimeCards2022 tc
+    Left Join TimeCards2022 tc 
         ON atn.date=tc.InPunchDay
-                AND tc.Department='W104'
+        AND tc.Department='SA8'
 
-        WHERE atn.individual like 'WRIGHT%'
-                AND isp.isp_program is NULL
-
-   Group By
-        atn.individual,
-        tc.InPunchTime,
-        tc.Firstname,
-        tc.Lastname,
-        tc.OutPunchTime,
-        tc.InPunchDay,
-        atn.attendance,
-        tc.OutPunchDay,
-        atn.Date
-    HAVING
-        cast(tc.InPunchTime as time)>='14:00'
-        AND cast(tc.InPunchTime as time)<='17:00'
-        AND tc.OutPunchTime>='20:00'
-        AND atn.attendance like '%12%'
-
-
-
-
-
-
-    )
-    UNION
-    (Select
-        atn.individual as 'Name',
-        tc.InPunchDay as 'Date',
-        concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, atn.Date) as 'Weekday',
-        tc.InPunchTime as 'Shift Start',
-        '11:59 PM' as 'Shift End',
-                    'E104' AS 'Home',
-                    'Teena' as 'Manager',
-                    'Kent County' as 'County'
-
-        FROM [attendance2022] atn
-
-        left Join isp
-                ON (atn.date=isp.date)
-                AND (isp.Individual=atn.individual)
-                AND ((cast(isp.begin_time as time)>='6pm' AND isp.[duration]>30)
-                    AND (cast(isp.begin_time as time)<='11pm' AND isp.[duration]>30))
-
-        Left Join TimeCards2022 tc
-            ON (atn.date=tc.InPunchDay)
-                AND tc.Department='W104'
-
-        WHERE atn.individual like 'WRIGHT%'
-               AND isp.isp_program is NULL
-
-   Group By
-        atn.individual,
-        tc.InPunchTime,
-        tc.Firstname,
-        tc.Lastname,
-        tc.OutPunchTime,
-        tc.InPunchDay,
-        atn.attendance,
-        tc.OutPunchDay,
-        atn.Date
-    HAVING
-        cast(tc.InPunchTime as time)>='6pm'
-        AND atn.attendance like '%12%'
-
-
-
-
-
-
-    )
-    UNION
-    (Select
-        atn.individual as 'Name',
-        tc.OutPunchDay as 'Date',
-        concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, atn.Date) as 'Weekday',
-        '12:00 AM' as 'Shift Start',
-        tc.OutPunchTime as 'Shift End',
-                    'E104' AS 'Home',
-                    'Teena' as 'Manager',
-                    'Kent County' as 'County'
-        FROM [attendance2022] atn
-
-              left Join isp
-        ON (atn.date=isp.date)
-        AND (isp.Individual=atn.individual)
-        AND ((cast(isp.begin_time as time)='12am' AND isp.[duration]>58))
-
-        Left Join TimeCards2022 tc
-        ON (atn.date=tc.InPunchDay)
-                AND tc.Department='W104'
-
-        WHERE atn.individual like 'WRIGHT%'
-               AND isp.isp_program is NULL
-
-   Group By
-        atn.individual,
-        tc.InPunchTime,
-        tc.Firstname,
-        tc.Lastname,
-        tc.OutPunchTime,
-        tc.InPunchDay,
-        atn.attendance,
-        tc.OutPunchDay,
-        atn.Date
-
-    HAVING
-        cast(tc.InPunchTime as time)>='6pm'
-        AND atn.attendance like '%12%'
-
-
-
-
-
-
-    )
-
-    UNION
-
-    (Select
-        atn.individual as 'Name',
-        tc.InPunchDay as 'Date',
-        concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, atn.Date) as 'Weekday',
-        tc.InPunchTime as 'Shift Start',
-        tc.OutPunchTime as 'Shift End',
-        '8 Nairn' as 'Home',
-        'David' as 'Manager',
-        'New Castle County' as 'County'
-
-    FROM
-        [attendance2022] atn
-
-        left Join isp
-            ON (atn.date=isp.date)
-            AND (isp.Individual=atn.individual)
-            AND ((cast(isp.begin_time as time)>='07:00' AND isp.[duration]>120)
-            AND (cast(isp.begin_time as time)<='10:00' AND isp.[duration]>120))
-
-        Left Join TimeCards2022 tc
-            ON atn.date=tc.InPunchDay
-            AND tc.Department='SA8'
-
-    WHERE
-        atn.individual like 'GOLDS%'
-        AND isp.isp_program is NULL
-        -- IF THE INDIVIDUAL GOES TO DAY PROGRAM --
-        --AND (datepart(weekday,atn.date)<2 OR datepart(weekday,atn.date)>6)
-
-   Group By
-        atn.individual,
-        tc.InPunchTime,
-        tc.Firstname,
-        tc.Lastname,
-        tc.OutPunchTime,
-        tc.InPunchDay,
-        atn.attendance,
-        tc.OutPunchDay,
-        atn.Date
-    HAVING
-        cast(tc.InPunchTime as time)>='07:00'
-        AND cast(tc.InPunchTime as time)<='10:00'
-        AND atn.attendance like '%12%'
-
-
-
-
-
-    )
-
-    UNION
-    (Select
-        atn.individual as 'Name',
-        tc.InPunchDay as 'Date',
-        concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, atn.Date) as 'Weekday',
-        tc.InPunchTime as 'Shift Start',
-        tc.OutPunchTime as 'Shift End',
-        '8 Nairn' as 'Home',
-        'David' as 'Manager',
-        'New Castle County' as 'County'
-
-
-    FROM [attendance2022] atn
-
-        left Join isp
-            ON (atn.date=isp.date)
-            AND (isp.Individual=atn.individual)
-            AND ((cast(isp.begin_time as time)>='14:00' AND isp.[duration]>120)
-            AND (cast(isp.begin_time as time)<='17:00' AND isp.[duration]>120))
-
-        Left Join TimeCards2022 tc
-            ON atn.date=tc.InPunchDay
-            AND tc.Department='SA8'
-
-    WHERE
-        atn.individual like 'GOLDS%'
-        AND isp.isp_program is NULL
-
-
-   Group By
-        atn.individual,
-        tc.InPunchTime,
-        tc.Firstname,
-        tc.Lastname,
-        tc.OutPunchTime,
-        tc.InPunchDay,
-        atn.attendance,
-        tc.OutPunchDay,
-        atn.Date
-    HAVING
-        cast(tc.InPunchTime as time)>='14:00'
-        AND cast(tc.InPunchTime as time)<='17:00'
-        AND tc.OutPunchTime>='20:00'
-        AND atn.attendance like '%12%'
-
-
-
-
-
-    )
-
-    UNION
-    (Select
-        atn.individual as 'Name',
-        tc.InPunchDay as 'Date',
-        concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, atn.Date) as 'Weekday',
-        tc.InPunchTime as 'Shift Start',
-        '11:59 PM' as 'Shift End',
-        '8 Nairn' as 'Home',
-        'David' as 'Manager',
-        'New Castle County' as 'County'
-
-    FROM [attendance2022] atn
-
-        left Join isp
-            ON (atn.date=isp.date)
-            AND (isp.Individual=atn.individual)
-            AND ((cast(isp.begin_time as time)>='6pm' AND isp.[duration]>30)
-            AND (cast(isp.begin_time as time)<='11pm' AND isp.[duration]>30))
-
-        Left Join TimeCards2022 tc
-            ON (atn.date=tc.InPunchDay)
-            AND tc.Department='SA8'
-
-    WHERE
-        atn.individual like 'GOLDS%'
-        AND isp.isp_program is NULL
-
-   Group By
-        atn.individual,
-        tc.InPunchTime,
-        tc.Firstname,
-        tc.Lastname,
-        tc.OutPunchTime,
-        tc.InPunchDay,
-        atn.attendance,
-        tc.OutPunchDay,
-        atn.Date
-    HAVING
-        cast(tc.InPunchTime as time)>='6pm'
-        AND atn.attendance like '%12%'
-
-
-
-
-
-    )
-
-    UNION
-    (Select
-        atn.individual as 'Name',
-        tc.OutPunchDay as 'Date',
-        concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
-        datename(weekday, atn.Date) as 'Weekday',
-        '12:00 AM' as 'Shift Start',
-        tc.OutPunchTime as 'Shift End',
-        '8 Nairn' as 'Home',
-        'David' as 'Manager',
-        'New Castle County' as 'County'
-
-    FROM [attendance2022] atn
-
-        left Join isp
-            ON (atn.date=isp.date)
-            AND (isp.Individual=atn.individual)
-            AND ((cast(isp.begin_time as time)='12am' AND isp.[duration]>58))
-
-        Left Join TimeCards2022 tc
-            ON (atn.date=tc.InPunchDay)
-            AND tc.Department='SA8'
-
-    WHERE atn.individual like 'GOLDS%'
+WHERE 
+    atn.individual like 'GOLDS%'
     AND isp.isp_program is NULL
 
-   Group By
-        atn.individual,
-        tc.InPunchTime,
-        tc.Firstname,
-        tc.Lastname,
-        tc.OutPunchTime,
-        tc.InPunchDay,
-        atn.attendance,
-        tc.OutPunchDay,
-        atn.Date
-    HAVING
-        cast(tc.InPunchTime as time)>='6pm'
-        AND atn.attendance like '%12%'
+
+Group By atn.date, tc.EarnHours,
+ 
+    atn.individual,
+    tc.InPunchTime,
+    tc.Firstname,
+    tc.Lastname,
+    tc.OutPunchTime, 
+    tc.InPunchDay,
+    atn.attendance,
+    tc.OutPunchDay
+
+HAVING 
+    cast(tc.InPunchTime as time)>='14:00'
+    AND cast(tc.InPunchTime as time)<='17:00'
+      AND atn.attendance like '%12%'
+    AND tc.EarnHours > 3
 
 
-    )
-"""
+
+
+
+)
+
+UNION
+(Select 
+    atn.individual as 'Name',
+    atn.Date as 'Date',
+    concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
+    datename(weekday, atn.date) as 'Weekday', 
+    tc.InPunchTime as 'Shift Start', 
+    '11:59 PM' as 'Shift End',
+    '8 Nairn' as 'Home',
+    'David' as 'Manager',
+    'New Castle County' as 'County'
+
+FROM [attendance2022] atn
+
+    left Join isp
+        ON (atn.date=isp.date)
+        AND (isp.Individual=atn.individual)
+        AND ((cast(isp.begin_time as time)>='6pm' AND isp.[duration]>=30)
+        AND (cast(isp.begin_time as time)<='11:30pm' AND isp.[duration]>=30))
+
+    Left Join TimeCards2022 tc
+        ON (atn.date=tc.InPunchDay)
+        AND tc.Department='SA8'
+
+WHERE 
+    atn.individual like 'GOLDS%'
+    AND isp.isp_program is NULL
+
+Group By atn.date, tc.EarnHours,
+ 
+    atn.individual,
+    tc.InPunchTime,
+    tc.Firstname,
+    tc.Lastname,
+    tc.OutPunchTime, 
+    tc.InPunchDay,
+    atn.attendance,
+    tc.OutPunchDay
+
+HAVING 
+    cast(tc.InPunchTime as time)>='6pm'
+      AND atn.attendance like '%12%'
+    AND tc.EarnHours > 3
+
+
+
+
+
+)
+
+UNION
+(Select 
+    atn.individual as 'Name',
+    tc.OutPunchDay as 'Date',
+    concat(tc.firstname, ' ', tc.lastname) as 'Staff Name',
+    datename(weekday, atn.date) as 'Weekday', 
+    '12:00 AM' as 'Shift Start', 
+    tc.OutPunchTime as 'Shift End',
+    '8 Nairn' as 'Home', 
+    'David' as 'Manager',
+    'New Castle County' as 'County'
+
+FROM [attendance2022] atn
+
+    left Join isp
+        ON (atn.date=isp.date)
+        AND (isp.Individual=atn.individual)
+        AND ((cast(isp.begin_time as time)='12am' AND isp.[duration]>=30))
+
+    Left Join TimeCards2022 tc
+        ON (atn.date=tc.OutPunchDay)
+        AND tc.Department='SA8'
+
+WHERE atn.individual like 'GOLDS%'
+AND isp.isp_program is NULL
+
+Group By atn.date, tc.EarnHours,
+ 
+    atn.individual,
+    tc.InPunchTime,
+    tc.Firstname,
+    tc.Lastname,
+    tc.OutPunchTime, 
+    tc.InPunchDay,
+    atn.attendance,
+    tc.OutPunchDay
+
+HAVING 
+    cast(tc.InPunchTime as time)>='6pm'
+      AND atn.attendance like '%12%'
+    AND tc.EarnHours > 3
+
+
+)
+ORDER BY 1"""
 isp_data = pd.read_sql_query(mdq, con=engine)
 print(isp_data)
 
