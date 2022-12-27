@@ -28,7 +28,7 @@ pdf_path = fr"{save_path}\RAW\pdfs.csv"
 
 
 isp_table = create_isp_table.start(kc_isp_path, nc_isp_path, save_path, date)
-atn_table = create_atn_table.start(q1, q2, q3, q4, save_path, date)
+atn_table = create_atn_table.start(atn1, atn2, atn3, save_path, date)
 timecard_table = create_timecard_table.start(timecard_path, save_path, date)
 apt_table = create_apt_table.start(apt_path, save_path, date)
 points_table = create_atn_points_table.start(points_path, save_path, date)
