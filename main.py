@@ -2627,3 +2627,10 @@ apt_data.to_excel(xlwriter, sheet_name="Apts", index=False)
 ap_data.to_excel(xlwriter, sheet_name="Attendance_Points", index=False)
 pdf_data.to_excel(xlwriter, sheet_name="Performance_Discussion_Forms", index=False)
 xlwriter.close()
+
+
+# Display the staff who are currently missing documentation, and how many documentations are they missing
+
+data = pd.read_excel(fr"{save_path}\DataReport({date}).xlsx")
+counts = data.groupby(data["Staff Name"])
+print(counts["Staff Name"].count())
