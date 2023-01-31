@@ -14,7 +14,30 @@ import azure_cnxn as az
 
 
 date = input("What's Today's Date?:   ")
-save_path = fr"C:\Users\olato\OneDrive\Desktop\TOBOLA QA REVIEW\Data_Pulls\2022\12_December\{date}"
+cut = slice(2)
+
+year = {
+    "22": "2022",
+    "23": "2023"
+}
+month = {
+    "1.": "1_January",
+    "2.": "2_February",
+    "3.": "3_March",
+    "4.": "4_April",
+    "5.": "5_May",
+    "6.": "6_June",
+    "7.": "7_July",
+    "8.": "8_August",
+    "9.": "9_September",
+    "10": "10_October",
+    "11": "11_November",
+    "12": "12_December"
+}
+month_folder = month.get(f'{date[cut]}')
+year_folder = year.get(f"{date[-2:]}")
+
+save_path = fr"C:\Users\olato\OneDrive\Desktop\TOBOLA QA REVIEW\Data_Pulls\{year_folder}\{month_folder}\{date}"
 nc_isp_path = fr"{save_path}\RAW\nc_isp.xlsx"
 kc_isp_path = fr"{save_path}\RAW\kc_isp.xlsx"
 atn1 = fr"{save_path}\RAW\atn1.xlsx"
@@ -1385,7 +1408,7 @@ UNION
 	tc.InPunchTime as 'Shift Start', 
 	tc.OutPunchTime as 'Shift End',
                 'J101' as 'Home',
-                'Paul' as 'Manager',
+                'Whitney' as 'Manager',
                 'Kent County' as 'County'
 
 
@@ -2628,9 +2651,21 @@ ap_data.to_excel(xlwriter, sheet_name="Attendance_Points", index=False)
 pdf_data.to_excel(xlwriter, sheet_name="Performance_Discussion_Forms", index=False)
 xlwriter.close()
 
+# The Program takes a break here for you to review the data and clean it before completing the final steps to display,
+# staff who are missing documentation and their counts
+
+print("Take a second to review the documentation, and upload missing data files to Notion.")
+print(" ")
+step = int(input("""Are you ready to move on? 
+    1 for Y, 2 for N.
+    
+    """))
 
 # Display the staff who are currently missing documentation, and how many documentations are they missing
 
-data = pd.read_excel(fr"{save_path}\DataReport({date}).xlsx")
-counts = data.groupby(data["Staff Name"])
-print(counts["Staff Name"].count())
+if step == 1:
+    data = pd.read_excel(fr"{save_path}\DataReport({date}).xlsx")
+    counts = data.groupby(data["Staff Name"])
+    print(counts["Staff Name"].count())
+elif step == 2:
+    print("error")
