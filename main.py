@@ -1,5 +1,6 @@
 import create_apt_table
 import create_atn_table
+import create_employee_table
 import create_isp_table
 import create_timecard_table
 import create_atn_points_table
@@ -47,6 +48,7 @@ timecard_path = fr"{save_path}\RAW\timecards.csv"
 apt_path = fr"{save_path}\RAW\apts.xlsx"
 points_path = fr"{save_path}\RAW\atnpoints.csv"
 pdf_path = fr"{save_path}\RAW\pdfs.csv"
+ee_path = fr"{save_path}\RAW\CurrentEmployees.csv"
 
 
 
@@ -56,12 +58,15 @@ timecard_table = create_timecard_table.start(timecard_path, save_path, date)
 apt_table = create_apt_table.start(apt_path, save_path, date)
 points_table = create_atn_points_table.start(points_path, save_path, date)
 pdf_table = create_pdf_table.start(pdf_path, save_path, date)
+ee_table = create_employee_table.start(ee_path, save_path, date)
 
 create_isp_table.write_to_table(isp_table)
 create_atn_table.write_to_table(atn_table)
 create_timecard_table.write_to_table(timecard_table)
 create_apt_table.write_to_table(apt_table)
 create_atn_points_table.write_to_table(points_table)
+create_employee_table.write_to_table(ee_table)
+create_pdf_table.write_to_table(pdf_table)
 
 cnxn_url = URL.create("mssql+pyodbc", query={"odbc_connect": az.cnxn_string})
 engine = sql.create_engine(cnxn_url)
@@ -2573,8 +2578,8 @@ SELECT
     EE_Code as [Employee ID],
     concat(pt.FirstName, ' ', pt.LastName) as 'Staff',
     Count(pt.Points)  as 'Points',
-    AVG(pt.Minutes_Points_Off) as 'Average Time Late',
-    dsp.supervisor 
+    AVG(pt.Minutes_Points_Off) as 'Average Time Late'
+    
 FROM
     atnPoints pt
     Join CurrentDSP dsp 
@@ -2585,8 +2590,8 @@ Where
 GROUP BY 
     EE_Code, 
     pt.FirstName,
-	pt.LastName,
-    dsp.supervisor
+	pt.LastName
+
 Order by 
 	ee_code
     """
@@ -2630,7 +2635,6 @@ GROUP BY
     wu.Creation_Date,
     wu.discussion_reason,
     wu.discussion_template,
-    wu.field_description,
     wu.field_answer,
     cd.supervisor
 
@@ -2640,15 +2644,15 @@ HAVING
 ORDER BY
     wu.Employee_Code
     """
-pdf_data = pd.read_sql_query(pdf, con=engine)
-print(pdf_data)
+#pdf_data = pd.read_sql_query(pdf, con=engine)
+#print(pdf_data)
 
 # MissingData Excel File
 xlwriter = pd.ExcelWriter(fr"{save_path}\DataReport({date}).xlsx")
 isp_data.to_excel(xlwriter, sheet_name="ISPs", index=False)
 apt_data.to_excel(xlwriter, sheet_name="Apts", index=False)
 ap_data.to_excel(xlwriter, sheet_name="Attendance_Points", index=False)
-pdf_data.to_excel(xlwriter, sheet_name="Performance_Discussion_Forms", index=False)
+#pdf_data.to_excel(xlwriter, sheet_name="Performance_Discussion_Forms", index=False)
 xlwriter.close()
 
 # The Program takes a break here for you to review the data and clean it before completing the final steps to display,
