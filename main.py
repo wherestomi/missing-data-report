@@ -1,5 +1,6 @@
 import create_apt_table
 import create_atn_table
+import create_ee_table
 import create_employee_table
 import create_isp_table
 import create_timecard_table
@@ -58,15 +59,16 @@ timecard_table = create_timecard_table.start(timecard_path, save_path, date)
 apt_table = create_apt_table.start(apt_path, save_path, date)
 points_table = create_atn_points_table.start(points_path, save_path, date)
 pdf_table = create_pdf_table.start(pdf_path, save_path, date)
-ee_table = create_employee_table.start(ee_path, save_path, date)
+ee_table = create_ee_table.start(ee_path, save_path, date)
+
 
 create_isp_table.write_to_table(isp_table)
-create_atn_table.write_to_table(atn_table)
+create_atn_table.(atn_table)
 create_timecard_table.write_to_table(timecard_table)
 create_apt_table.write_to_table(apt_table)
 create_atn_points_table.write_to_table(points_table)
-create_employee_table.write_to_table(ee_table)
 create_pdf_table.write_to_table(pdf_table)
+create_ee_table.write_to_table(ee_table)
 
 cnxn_url = URL.create("mssql+pyodbc", query={"odbc_connect": az.cnxn_string})
 engine = sql.create_engine(cnxn_url)
