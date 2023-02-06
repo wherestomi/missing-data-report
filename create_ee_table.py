@@ -63,9 +63,9 @@ def write_to_table(DataFrame):
     engine = sql.create_engine(cnxn_url)
 
     ee_update_query = """Select
-    c.EE_Code as 'EE Code',
-    c.First_Name as 'First Name',
-    c.Last_Name as 'Last Name',
+    c.Employee_Code as 'EE Code',
+    c.Legal_Firstname as 'First Name',
+    c.Legal_Lastname as 'Last Name',
     c.Hire_Date as 'Hire Date',
      CASE 
         WHEN
@@ -78,9 +78,9 @@ FROM
 RIGHT JOIN
     NEW c 
     ON
-        o.EE_Code = c.EE_Code
+        o.EE_Code = c.Employee_Code
 WHERE
-    o.EE_Code is NULL and c.First_Name not like 'Test'"""
+    o.EE_Code is NULL and c.Legal_Firstname not like 'Test'"""
     updates = pd.read_sql_query(ee_update_query, con=engine)
     print("New Employees to NOTION")
     print(updates)
@@ -88,4 +88,3 @@ WHERE
 
     updates.to_notion(id_url, title="Tests", api_key=notion_token)
 
-write_to_table(updated)

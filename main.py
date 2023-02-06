@@ -1,7 +1,6 @@
 import create_apt_table
 import create_atn_table
 import create_ee_table
-import create_employee_table
 import create_isp_table
 import create_timecard_table
 import create_atn_points_table
@@ -63,7 +62,7 @@ ee_table = create_ee_table.start(ee_path, save_path, date)
 
 
 create_isp_table.write_to_table(isp_table)
-create_atn_table.(atn_table)
+create_atn_table.write_to_table(atn_table)
 create_timecard_table.write_to_table(timecard_table)
 create_apt_table.write_to_table(apt_table)
 create_atn_points_table.write_to_table(points_table)
