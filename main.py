@@ -79,7 +79,6 @@ from openpyxl.utils import get_column_letter
 
 # Missing Data Query
 mdq = """
-
 --DEVEN HEADEN --
 (Select 
     atn.individual as 'Name',
@@ -89,7 +88,7 @@ mdq = """
     tc.InPunchTime as 'Shift Start', 
     tc.OutPunchTime as 'Shift End',
     'Castlebrook' as 'Home',
-    'Paul' as 'Manager', 
+    'Teena' as 'Manager', 
     'New Castle County' as 'County'
 
 From 
@@ -139,7 +138,7 @@ UNION
     tc.InPunchTime as 'Shift Start', 
     '11:59 PM' as 'Shift End',
     'Castlebrook' as 'Home',
-    'Paul' as 'Manager', 
+    'Teena' as 'Manager', 
     'New Castle County' as 'County'
 
 FROM 
@@ -186,7 +185,7 @@ HAVING cast(tc.InPunchTime as time)>='6pm'
     '12:00 AM' as 'Shift Start', 
     tc.OutPunchTime as 'Shift End',
     'Castlebrook' as 'Home',
-    'Paul' as 'Manager', 
+    'Teena' as 'Manager', 
     'New Castle County' as 'County'
 
 FROM 
@@ -232,7 +231,7 @@ UNION
     tc.InPunchTime as 'Shift Start', 
     tc.OutPunchTime as 'Shift End',
     'Castlebrook' as 'Home',
-    'Paul' as 'Manager', 
+    'Teena' as 'Manager', 
     'New Castle County' as 'County'
 
 From 
@@ -282,7 +281,7 @@ UNION
     tc.InPunchTime as 'Shift Start', 
     '11:59 PM' as 'Shift End',
     'Castlebrook' as 'Home',
-    'Paul' as 'Manager', 
+    'Teena' as 'Manager', 
     'New Castle County' as 'County'
 
 FROM 
@@ -329,7 +328,7 @@ HAVING cast(tc.InPunchTime as time)>='6pm'
     '12:00 AM' as 'Shift Start', 
     tc.OutPunchTime as 'Shift End',
     'Castlebrook' as 'Home',
-    'Paul' as 'Manager', 
+    'Teena' as 'Manager', 
     'New Castle County' as 'County'
 
 FROM 
@@ -1459,7 +1458,7 @@ UNION
     tc.InPunchTime as 'Shift Start', 
     tc.OutPunchTime as 'Shift End',
     'K110' as 'Home',
-    'Paul' as 'Manager',
+    'Whitney' as 'Manager',
     'Kent County' as 'County'
 
 FROM [Attendance2022] atn
@@ -1512,7 +1511,7 @@ UNION
     tc.InPunchTime as 'Shift Start', 
     tc.OutPunchTime as 'Shift End',
     'K110' as 'Home',
-    'Paul' as 'Manager',
+    'Whitney' as 'Manager',
     'Kent County' as 'County'
 
 
@@ -1562,7 +1561,7 @@ UNION
     tc.InPunchTime as 'Shift Start', 
     '11:59 PM' as 'Shift End',
     'K110' as 'Home',
-    'Paul' as 'Manager',
+    'Whitney' as 'Manager',
     'Kent County' as 'County'
 
 FROM [Attendance2022] atn
@@ -1608,7 +1607,7 @@ UNION
     '12:00 AM' as 'Shift Start', 
     tc.OutPunchTime as 'Shift End',                                                                                                                                                                                                                                                           
     'K110' as 'Home',
-    'Paul' as 'Manager',
+    'Whitney' as 'Manager',
     'Kent County' as 'County'
 
 FROM [Attendance2022] atn
@@ -2522,7 +2521,8 @@ HAVING
 
 
 )
-ORDER BY 1"""
+ORDER BY 1
+"""
 isp_data = pd.read_sql_query(mdq, con=engine)
 print(isp_data)
 
@@ -2542,11 +2542,11 @@ SELECT
             (program='3 Nairn Ln' OR program='8 Nairn Ln')
             THEN 'David'
         WHEN
-            (program='324 Broadstairs' OR program='Westover E104' OR program='104 Katrina Way')
+            (program='324 Broadstairs' OR program='Westover E104' OR program='13B Dartmouth - Castlebrook')
             THEN 'Teena'
         WHEN
-            (program='Katrina 110' OR program='13B Dartmouth - Castlebrook' OR program='Cannon Mills - 101')
-            THEN 'Paul'
+            (program='Katrina 110' OR program='Cannon Mills - 101')
+            THEN 'Whitney'
         END AS 'Manager',
     CASE 
         WHEN
