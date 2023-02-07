@@ -67,7 +67,7 @@ create_timecard_table.write_to_table(timecard_table)
 create_apt_table.write_to_table(apt_table)
 create_atn_points_table.write_to_table(points_table)
 create_pdf_table.write_to_table(pdf_table)
-create_ee_table.write_to_table(ee_table)
+create_ee_table.write_to_table(ee_table, save_path)
 
 cnxn_url = URL.create("mssql+pyodbc", query={"odbc_connect": az.cnxn_string})
 engine = sql.create_engine(cnxn_url)
