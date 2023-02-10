@@ -13,10 +13,7 @@ id_url = "https://www.notion.so/03764697bdf74f2b938313815cf62069?v=e856d446c1a44
 
 ee_df = pd.DataFrame(nd.download(ee_db_id, api_key=notion_token, resolve_relation_values=True))
 
-updated = pd.read_csv(fr"/Users/tomiawodiya/Desktop/20230207131024_Current Employee Notion_67f1afd5.csv")
-save_path = fr"/Users/tomiawodiya/Desktop"
-
-
+# Limit to columns needed for analysis
 ee_df = ee_df[["EE Code",
                'First Name',
                'Last Name',
@@ -29,22 +26,6 @@ ee_df = ee_df[["EE Code",
                'DL Expiration Date',
                'Termination Date',
                'Status']]
-updated = updated[['Employee_Code',
-                   'Legal_Firstname',
-                   'Legal_Lastname',
-                   'Hire_Date',
-                   'Position_Seat_Number',
-                   'Primary_Supervisor',
-                   'Department',
-                   'Termination_Date']]
-updated.columns = ['EE Code',
-                   'First Name',
-                   'Last Name',
-                   'Hire Date',
-                   'Position Seat',
-                   'Supervisor',
-                   'Department',
-                   'Termination Date']
 
 
 def start(ee_path, save_path, savedate):
@@ -52,7 +33,7 @@ def start(ee_path, save_path, savedate):
     # Create a dataframe from the excel file
     ee = pd.DataFrame(pd.read_csv(fr"{ee_path}"))
 
-    ee.to_csv(fr"{save_path}\EE({savedate}).csv")
+    ee.to_csv(fr"{save_path}/EE({savedate}).csv")
 
     print("""Paycom Current
           """)
@@ -74,19 +55,25 @@ def write_to_table(DataFrame, savepath):
                  'Hire Date',
                  'Position Seat',
                  'Termination Date',
-                 'Status']]
+                 'Status',
+                 'Home Base',
+                 'Direct Supervisor']]
     new = DataFrame[['Employee_Code',
-                   'Legal_Firstname',
-                   'Legal_Lastname',
-                   'Hire_Date',
-                   'Position_Seat_Number',
-                   'Termination_Date']]
+                     'Legal_Firstname',
+                     'Legal_Lastname',
+                     'Hire_Date',
+                     'Position_Seat_Number',
+                     'Termination_Date',
+                     'Department',
+                     'Reports_to_Position']]
     new.columns = ['EE Code',
                    'First Name',
                    'Last Name',
                    'Hire Date',
                    'Position Seat',
-                   'Termination Date']
+                   'Termination Date',
+                   'Home Base',
+                   'Direct Supervisor']
 
     ##  Create SQL Server Connection
     from sqlalchemy.engine import URL
@@ -131,7 +118,8 @@ def write_to_table(DataFrame, savepath):
     ee_updates.to_notion(id_url, title="Tests", api_key=notion_token)
 
     # List any discrepancies between employee information in new vs old
-    ## Current Columns Checked: EE Code, First Name, Last Name, Hire Date, Position Seat, Termination Date.
+    ## Current Columns Checked: EE Code, First Name, Last Name, Hire Date, Position Seat, Termination Date, Status,
+    # Home Base, Direct Supervisor, Synced.
 
     discrepancy_query ="""
     SELECT
@@ -139,19 +127,19 @@ def write_to_table(DataFrame, savepath):
             WHEN p.[EE Code]=n.[EE Code]
                 THEN n.[EE Code]
                 ELSE 'Error'
-            END as 'EE Code',
+        END as 'EE Code',
         p.[First Name],
         p.[Last Name],
         CASE
             WHEN p.[Hire Date] = n.[Hire Date]
                 THEN 'Synced'
                 ELSE p.[Hire Date]
-            END as 'Hire Date',
+        END as 'Hire Date',
         CASE
             WHEN p.[Position Seat] = n.[Position Seat]
                 THEN 'Synced'
                 ELSE p.[Position Seat]
-            END as 'Position Seat',
+        END as 'Position Seat',
         CASE
             WHEN (((
                 CASE
@@ -166,35 +154,80 @@ def write_to_table(DataFrame, savepath):
             THEN 'Synced'
             ELSE p.[Termination Date]
         END as 'Termination Date',
-    CASE
-        WHEN p.[Termination Date] = '00/00/0000'
-            THEN 'Active'
-        ELSE 'Terminated'
-    END as 'Status',
-    CASE
-        WHEN
-            p.[EE Code]=n.[EE Code]
-            AND p.[Hire Date] = n.[Hire Date]
-            AND ((p.[Position Seat] = n.[Position Seat]) 
-                    OR p.[Position Seat] is NULL)
-            AND ((
-                CASE
-                    WHEN p.[Termination Date] = '00/00/0000'
-                    THEN '01/01/2000'
-                    ELSE cast(p.[Termination Date] as date)
-                END) = (CASE
-                        WHEN n.[Termination Date] is NULL
+        CASE
+            WHEN p.[Termination Date] = '00/00/0000'
+                THEN 'Active'
+            ELSE 'Terminated'
+        END as 'Status',
+        CASE 
+            WHEN p.[Home Base] = '1'
+                THEN 'Administration'
+            WHEN p.[Home Base] = '2'
+                THEN 'S604'
+            WHEN p.[Home Base] = '3'
+                THEN 'E103'
+            WHEN p.[Home Base] = '4'
+                THEN 'E104'
+            WHEN p.[Home Base] = '5'
+                THEN 'J101'
+            WHEN p.[Home Base] = '6'
+                THEN 'K102'
+            WHEN p.[Home Base] = '7'
+                THEN 'DIS'
+            WHEN p.[Home Base] = '8'
+                THEN 'F1C'
+            WHEN p.[Home Base] = '9'
+                THEN '8NL'
+            WHEN p.[Home Base] = '13B'
+                THEN '13B'
+            WHEN p.[Home Base] = 'K110'
+                THEN 'K110'
+            WHEN p.[Home Base] = 'SA3'
+                THEN '3NL'
+            ELSE 'Error'
+        END as 'Home Base',
+        CASE
+            WHEN p.[Direct Supervisor] = 'EKUNDAYO, OLUFUNKE CELESTINA-HUMAN RESOURCES /ACCOUNTING MANAGER-0003B'
+                THEN 'Celestina'
+            WHEN p.[Direct Supervisor] = 'KOROMA, EMMANUEL SARA-HUMAN RESOURCES MANAGER-0005O'
+                THEN 'Emmanuel'
+            WHEN p.[Direct Supervisor] = 'ROSSER, TEENA S-House Manager-00004'
+                THEN 'Teena'
+            WHEN p.[Direct Supervisor] = 'LOUISSAINT, DAVID-House Manager-00003'
+                THEN 'David'
+            WHEN p.[Direct Supervisor] = 'WILSON, WHITNEY-House Manager-00049'
+                THEN 'Whitney'
+            WHEN p.[Direct Supervisor] = 'RIVERA, FELICIA NICOLE-PROGRAM COORDINATOR-0005L'
+                THEN 'Felicia'
+            WHEN p.[Direct Supervisor] = 'AWODIYA, OLATOMIWA-Associate Director-00037'
+                THEN 'Tomi'
+            ELSE 
+                NULL
+        END as 'Direct Supervisor',
+        CASE
+            WHEN
+                p.[EE Code]=n.[EE Code]
+                AND p.[Hire Date] = n.[Hire Date]
+                AND ((p.[Position Seat] = n.[Position Seat]) 
+                        OR p.[Position Seat] is NULL)
+                AND ((
+                    CASE
+                        WHEN p.[Termination Date] = '00/00/0000'
                         THEN '01/01/2000'
-                        ELSE n.[Termination Date]
-                        END))
-        THEN 'Confirmed'
-        ELSE 'Error'
-    END as 'Synced'
-FROM 
-    paycom_ee p 
-JOIN
-    notion_ee n 
-        ON n.[EE Code]=p.[EE Code]
+                        ELSE cast(p.[Termination Date] as date)
+                    END) = (CASE
+                            WHEN n.[Termination Date] is NULL
+                            THEN '01/01/2000'
+                            ELSE n.[Termination Date]
+                            END))
+            THEN 'Confirmed'
+            ELSE 'Error'
+        END as 'Synced'
+    FROM 
+        paycom_ee p 
+    JOIN
+        notion_ee n 
+            ON n.[EE Code]=p.[EE Code]
  """
 
     discrepancies = pd.read_sql_query(discrepancy_query, con=engine)
@@ -204,8 +237,11 @@ JOIN
 
 
 
+#TESTING
 
-updated = fr"/Users/tomiawodiya/Desktop/20230207131024_Current Employee Notion_67f1afd5.csv"
-table = start(updated,save_path, savedate='2.6.23')
-write_to_table(table, save_path)
+#updated = (fr"/Users/tomiawodiya/Downloads/20230210141712_Current Employee Notion_91c10c11.csv")
+#save_path = fr"/Users/tomiawodiya/Desktop"
+
+#table = start(updated,save_path, savedate='2.6.23')
+#write_to_table(table, save_path)
 
