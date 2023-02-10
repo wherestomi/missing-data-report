@@ -4,7 +4,6 @@ import create_ee_table
 import create_isp_table
 import create_timecard_table
 import create_atn_points_table
-import create_pdf_table
 import isp_table_clean
 import pandas as pd
 from pandasql import sqldf
@@ -38,7 +37,7 @@ month = {
 month_folder = month.get(f'{date[cut]}')
 year_folder = year.get(f"{date[-2:]}")
 
-save_path = fr"C:\Users\olato\OneDrive\Desktop\TOBOLA QA REVIEW\Data_Pulls\{year_folder}\{month_folder}\{date}"
+save_path = fr"C:/Users/olato/OneDrive/Desktop/TOBOLA QA REVIEW/Data_Pulls/{year_folder}/{month_folder}/{date}"
 nc_isp_path = fr"{save_path}\RAW\nc_isp.xlsx"
 kc_isp_path = fr"{save_path}\RAW\kc_isp.xlsx"
 atn1 = fr"{save_path}\RAW\atn1.xlsx"
@@ -47,9 +46,7 @@ atn3 = fr"{save_path}\RAW\atn3.xlsx"
 timecard_path = fr"{save_path}\RAW\timecards.csv"
 apt_path = fr"{save_path}\RAW\apts.xlsx"
 points_path = fr"{save_path}\RAW\atnpoints.csv"
-pdf_path = fr"{save_path}\RAW\pdfs.csv"
 ee_path = fr"{save_path}\RAW\CurrentEmployees.csv"
-
 
 
 isp_table = create_isp_table.start(kc_isp_path, nc_isp_path, save_path, date)
@@ -57,7 +54,6 @@ atn_table = create_atn_table.start(atn1, atn2, atn3, save_path, date)
 timecard_table = create_timecard_table.start(timecard_path, save_path, date)
 apt_table = create_apt_table.start(apt_path, save_path, date)
 points_table = create_atn_points_table.start(points_path, save_path, date)
-pdf_table = create_pdf_table.start(pdf_path, save_path, date)
 ee_table = create_ee_table.start(ee_path, save_path, date)
 
 
@@ -66,8 +62,7 @@ create_atn_table.write_to_table(atn_table)
 create_timecard_table.write_to_table(timecard_table)
 create_apt_table.write_to_table(apt_table)
 create_atn_points_table.write_to_table(points_table)
-create_pdf_table.write_to_table(pdf_table)
-create_ee_table.write_to_table(ee_table, save_path)
+create_ee_table.write_to_table(ee_table, save_path=fr"{save_path}/HR")
 
 cnxn_url = URL.create("mssql+pyodbc", query={"odbc_connect": az.cnxn_string})
 engine = sql.create_engine(cnxn_url)
@@ -2599,61 +2594,11 @@ Order by
 ap_data = pd.read_sql_query(apq, con=engine)
 print(ap_data)
 
-
-# Corrective Action Query
-pdf = """
-SELECT
-    wu.Employee_Code,
-    concat(wu.Legal_Firstname, ' ', wu.Legal_Lastname) as 'Employee',
-    wu.Creation_Date,
-    wu.discussion_reason,
-    wu.Discussion_Template,
-    CASE 
-        WHEN wu.discussion_template='Memo of Conversation'
-        THEN 'Supervisor Comments'
-        WHEN wu.discussion_template!='Memo of Conversation'
-        THEN 'Description of Incident'
-        END as 'Field Description',
-    wu.field_answer,
-    Count (distinct wu.[discussion_id]) as Count,
-    cd.supervisor
-
-FROM
-    WriteUps wu
-
-JOIN
-    currentdsp cd 
-    ON cd.employee_code=wu.Employee_Code
-
-WHERE
-    wu.field_description='Description of Incident'
-    OR wu.field_description='Supervisor Comments'
-
-GROUP BY 
-    wu.Employee_Code,
-    wu.Legal_Firstname,
-    wu.Legal_Lastname,
-    wu.Creation_Date,
-    wu.discussion_reason,
-    wu.discussion_template,
-    wu.field_answer,
-    cd.supervisor
-
-HAVING 
-    cd.supervisor is not null 
-
-ORDER BY
-    wu.Employee_Code
-    """
-#pdf_data = pd.read_sql_query(pdf, con=engine)
-#print(pdf_data)
-
 # MissingData Excel File
 xlwriter = pd.ExcelWriter(fr"{save_path}\DataReport({date}).xlsx")
 isp_data.to_excel(xlwriter, sheet_name="ISPs", index=False)
 apt_data.to_excel(xlwriter, sheet_name="Apts", index=False)
 ap_data.to_excel(xlwriter, sheet_name="Attendance_Points", index=False)
-#pdf_data.to_excel(xlwriter, sheet_name="Performance_Discussion_Forms", index=False)
 xlwriter.close()
 
 # The Program takes a break here for you to review the data and clean it before completing the final steps to display,
